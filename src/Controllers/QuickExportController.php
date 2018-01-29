@@ -3,12 +3,13 @@
 namespace Solspace\FreeformPro\Controllers;
 
 use craft\db\Query;
+use Solspace\Commons\Helpers\PermissionHelper;
 use Solspace\Freeform\Elements\Submission;
+use Solspace\Freeform\Freeform;
 use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\NoStorageInterface;
 use Solspace\Freeform\Library\Composer\Components\Form;
 use Solspace\Freeform\Library\Exceptions\Composer\ComposerException;
 use Solspace\Freeform\Library\Exceptions\FreeformException;
-use Solspace\Freeform\Library\Helpers\PermissionsHelper;
 use Solspace\FreeformPro\Records\ExportSettingRecord;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -148,7 +149,7 @@ class QuickExportController extends BaseProController
     public function actionIndex()
     {
         $this->requirePostRequest();
-        PermissionsHelper::requirePermission(PermissionsHelper::PERMISSION_SUBMISSIONS_ACCESS);
+        PermissionHelper::requirePermission(Freeform::PERMISSION_SUBMISSIONS_ACCESS);
 
         $settings = $this->getExportSettings();
 
@@ -161,9 +162,9 @@ class QuickExportController extends BaseProController
             return;
         }
 
-        PermissionsHelper::requirePermission(
-            PermissionsHelper::prepareNestedPermission(
-                PermissionsHelper::PERMISSION_SUBMISSIONS_MANAGE,
+        PermissionHelper::requirePermission(
+            PermissionHelper::prepareNestedPermission(
+                Freeform::PERMISSION_SUBMISSIONS_MANAGE,
                 $formId
             )
         );

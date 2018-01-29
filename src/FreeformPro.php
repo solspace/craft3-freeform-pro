@@ -41,6 +41,9 @@ class FreeformPro extends Plugin
 {
     const TRANSLATION_CATEGORY = 'freeform';
 
+    const PERMISSION_EXPORT_PROFILES_ACCESS = 'freeform-pro-exportProfilesAccess';
+    const PERMISSION_EXPORT_PROFILES_MANAGE = 'freeform-pro-exportProfilesManage';
+
     /**
      * @return FreeformPro|Plugin
      */

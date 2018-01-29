@@ -292,8 +292,8 @@ class ExportProfileModel extends Model
         $command = (new Query())
             ->select(implode(',', $searchableFields))
             ->from(Submission::TABLE . ' s')
-            ->innerJoin(StatusRecord::TABLE_STD . ' stat', 'stat.id = s.statusId')
-            ->innerJoin('content c', 'c.elementId = s.id')
+            ->innerJoin(StatusRecord::TABLE . ' stat', 'stat.id = s.statusId')
+            ->innerJoin('{{%content}} c', 'c.elementId = s.id')
             ->where(implode(' AND ', $conditions), $parameters);
 
         if ($this->limit) {

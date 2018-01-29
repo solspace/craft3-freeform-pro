@@ -3,11 +3,11 @@
 namespace Solspace\FreeformPro\Controllers;
 
 use craft\helpers\UrlHelper;
+use Solspace\Commons\Helpers\PermissionHelper;
 use Solspace\Freeform\Elements\Submission;
 use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\MultipleValueInterface;
 use Solspace\Freeform\Library\Composer\Components\Form;
 use Solspace\Freeform\Library\Exceptions\FreeformException;
-use Solspace\Freeform\Library\Helpers\PermissionsHelper;
 use Solspace\FreeformPro\Bundles\ExportProfileBundle;
 use Solspace\FreeformPro\FreeformPro;
 use Solspace\FreeformPro\Models\ExportProfileModel;
@@ -22,7 +22,7 @@ class ExportProfilesController extends BaseProController
      */
     public function actionIndex(): Response
     {
-        PermissionsHelper::requirePermission(PermissionsHelper::PERMISSION_EXPORT_PROFILES_ACCESS);
+        PermissionHelper::requirePermission(FreeformPro::PERMISSION_EXPORT_PROFILES_ACCESS);
 
         $exportProfileService = $this->getExportProfilesService();
         $exportProfiles       = $exportProfileService->getAllProfiles();
@@ -43,7 +43,7 @@ class ExportProfilesController extends BaseProController
      */
     public function actionCreate(string $formHandle): Response
     {
-        PermissionsHelper::requirePermission(PermissionsHelper::PERMISSION_EXPORT_PROFILES_MANAGE);
+        PermissionHelper::requirePermission(FreeformPro::PERMISSION_EXPORT_PROFILES_MANAGE);
 
         $formModel = $this->getFormsService()->getFormByHandle($formHandle);
         if (!$formModel) {
@@ -67,7 +67,7 @@ class ExportProfilesController extends BaseProController
      */
     public function actionEdit(int $id): Response
     {
-        PermissionsHelper::requirePermission(PermissionsHelper::PERMISSION_EXPORT_PROFILES_MANAGE);
+        PermissionHelper::requirePermission(FreeformPro::PERMISSION_EXPORT_PROFILES_MANAGE);
 
         $profile = $this->getExportProfilesService()->getProfileById($id);
 
@@ -86,7 +86,7 @@ class ExportProfilesController extends BaseProController
      */
     public function actionSave(): Response
     {
-        PermissionsHelper::requirePermission(PermissionsHelper::PERMISSION_EXPORT_PROFILES_MANAGE);
+        PermissionHelper::requirePermission(FreeformPro::PERMISSION_EXPORT_PROFILES_MANAGE);
 
         $post = \Craft::$app->request->post();
 
@@ -133,7 +133,7 @@ class ExportProfilesController extends BaseProController
     public function actionDelete()
     {
         $this->requirePostRequest();
-        PermissionsHelper::requirePermission(PermissionsHelper::PERMISSION_EXPORT_PROFILES_MANAGE);
+        PermissionHelper::requirePermission(FreeformPro::PERMISSION_EXPORT_PROFILES_MANAGE);
 
         $profileId = \Craft::$app->request->post('id');
 
@@ -147,7 +147,7 @@ class ExportProfilesController extends BaseProController
      */
     public function actionExport()
     {
-        PermissionsHelper::requirePermission(PermissionsHelper::PERMISSION_EXPORT_PROFILES_ACCESS);
+        PermissionHelper::requirePermission(FreeformPro::PERMISSION_EXPORT_PROFILES_ACCESS);
 
         $this->requirePostRequest();
 
