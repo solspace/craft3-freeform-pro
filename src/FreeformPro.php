@@ -12,9 +12,12 @@ use craft\base\Plugin;
 use craft\events\PluginEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\events\RegisterUserPermissionsEvent;
 use craft\services\Dashboard;
 use craft\services\Plugins;
+use craft\services\UserPermissions;
 use craft\web\UrlManager;
+use Solspace\Commons\Helpers\PermissionHelper;
 use Solspace\Freeform\Events\Fields\FetchFieldTypes;
 use Solspace\Freeform\Events\Freeform\RegisterCpSubnavItemsEvent;
 use Solspace\Freeform\Events\Integrations\FetchCrmTypesEvent;
@@ -40,6 +43,8 @@ use yii\base\Event;
 class FreeformPro extends Plugin
 {
     const TRANSLATION_CATEGORY = 'freeform';
+
+    const VIEW_EXPORT_PROFILES = 'export-profiles';
 
     const PERMISSION_EXPORT_PROFILES_ACCESS = 'freeform-pro-exportProfilesAccess';
     const PERMISSION_EXPORT_PROFILES_MANAGE = 'freeform-pro-exportProfilesManage';
@@ -174,16 +179,42 @@ class FreeformPro extends Plugin
             }
         );
 
+        if (\Craft::$app->getEdition() >= \Craft::Client) {
+            Event::on(
+                UserPermissions::class,
+                UserPermissions::EVENT_REGISTER_PERMISSIONS,
+                function (RegisterUserPermissionsEvent $event) {
+                    $event->permissions[$this->name] = array_merge(
+                        $event->permissions[$this->name],
+                        [
+                            self::PERMISSION_EXPORT_PROFILES_ACCESS => [
+                                'label'  => self::t('Access Export Profiles'),
+                                'nested' => [
+                                    self::PERMISSION_EXPORT_PROFILES_MANAGE => [
+                                        'label' => self::t(
+                                            'Manage Export Profiles'
+                                        ),
+                                    ],
+                                ],
+                            ],
+                        ]
+                    );
+                }
+            );
+        }
+
         Event::on(
             Freeform::class,
             Freeform::EVENT_REGISTER_SUBNAV_ITEMS,
             function (RegisterCpSubnavItemsEvent $event) {
-                $event->addSubnavItem(
-                    'exportProfiles',
-                    self::t('Export'),
-                    'freeform/export-profiles',
-                    'notifications'
-                );
+                if (PermissionHelper::checkPermission(self::PERMISSION_EXPORT_PROFILES_ACCESS)) {
+                    $event->addSubnavItem(
+                        'exportProfiles',
+                        self::t('Export'),
+                        'freeform/export-profiles',
+                        'notifications'
+                    );
+                }
             }
         );
 
