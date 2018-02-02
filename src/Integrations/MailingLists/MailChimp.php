@@ -23,8 +23,9 @@ use Solspace\Freeform\Library\Logging\LoggerInterface;
 
 class MailChimp extends AbstractMailingListIntegration
 {
-    const SETTING_API_KEY     = 'api_key';
-    const SETTING_DATA_CENTER = 'data_center';
+    const SETTING_API_KEY       = 'api_key';
+    const SETTING_DOUBLE_OPT_IN = 'double_opt_in';
+    const SETTING_DATA_CENTER   = 'data_center';
 
     const TITLE        = 'MailChimp';
     const LOG_CATEGORY = 'MailChimp';
@@ -44,6 +45,13 @@ class MailChimp extends AbstractMailingListIntegration
                 'API Key',
                 'Enter your MailChimp API key here.',
                 true
+            ),
+            new SettingBlueprint(
+                SettingBlueprint::TYPE_BOOL,
+                self::SETTING_DOUBLE_OPT_IN,
+                'Use double opt-in?',
+                '',
+                false
             ),
             new SettingBlueprint(
                 SettingBlueprint::TYPE_INTERNAL,
@@ -106,12 +114,14 @@ class MailChimp extends AbstractMailingListIntegration
         $client   = new Client();
         $endpoint = $this->getEndpoint("lists/{$mailingList->getId()}");
 
+        $isDoubleOptIn = $this->getSetting(self::SETTING_DOUBLE_OPT_IN);
+
         try {
             $members = [];
             foreach ($emails as $email) {
                 $memberData = [
                     'email_address' => $email,
-                    'status'        => 'subscribed',
+                    'status'        => $isDoubleOptIn ? 'pending' : 'subscribed',
                 ];
 
                 if (!empty($mappedValues)) {
