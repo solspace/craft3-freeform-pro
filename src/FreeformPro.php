@@ -184,8 +184,8 @@ class FreeformPro extends Plugin
                 UserPermissions::class,
                 UserPermissions::EVENT_REGISTER_PERMISSIONS,
                 function (RegisterUserPermissionsEvent $event) {
-                    $event->permissions[$this->name] = array_merge(
-                        $event->permissions[$this->name],
+                    $event->permissions['Forms'] = array_merge(
+                        $event->permissions['Forms'],
                         [
                             self::PERMISSION_EXPORT_PROFILES_ACCESS => [
                                 'label'  => self::t('Access Export Profiles'),
