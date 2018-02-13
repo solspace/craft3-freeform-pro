@@ -6,6 +6,7 @@ use craft\db\Query;
 use Solspace\Freeform\Elements\Submission;
 use Solspace\Freeform\Freeform;
 use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\MultipleValueInterface;
+use Solspace\Freeform\Library\Composer\Components\Fields\TextareaField;
 use Solspace\Freeform\Library\Composer\Components\Form;
 use Solspace\Freeform\Library\DataExport\ExportDataCSV;
 use Solspace\Freeform\Library\Exceptions\FreeformException;
@@ -372,6 +373,8 @@ class ExportProfilesService extends Component
      */
     private function normalizeArrayData(Form $form, array $data, bool $flattenArrays = true): array
     {
+        $isRemoveNewlines = Freeform::getInstance()->settings->isRemoveNewlines();
+
         /**
          * @var int   $index
          * @var array $item
@@ -392,6 +395,10 @@ class ExportProfilesService extends Component
                         }
 
                         $data[$index][$fieldId] = $value;
+                    }
+
+                    if ($isRemoveNewlines && $field instanceof TextareaField) {
+                        $data[$index][$fieldId] = trim(preg_replace('/\s+/', ' ', $value));
                     }
                 } catch (FreeformException $e) {
                     continue;

@@ -9,6 +9,7 @@
 namespace Solspace\FreeformPro;
 
 use craft\base\Plugin;
+use craft\db\Query;
 use craft\events\PluginEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -75,6 +76,10 @@ class FreeformPro extends Plugin
                 'exportProfiles' => ExportProfilesService::class,
             ]
         );
+
+        if (!class_exists('Solspace\Freeform\Freeform')) {
+            return;
+        }
 
         Event::on(
             UrlManager::class,
@@ -184,8 +189,12 @@ class FreeformPro extends Plugin
                 UserPermissions::class,
                 UserPermissions::EVENT_REGISTER_PERMISSIONS,
                 function (RegisterUserPermissionsEvent $event) {
-                    $event->permissions[$this->name] = array_merge(
-                        $event->permissions[$this->name],
+                    if (!isset($event->permissions[Freeform::PERMISSION_NAMESPACE])) {
+                        $event->permissions[Freeform::PERMISSION_NAMESPACE] = [];
+                    }
+
+                    $event->permissions[Freeform::PERMISSION_NAMESPACE] = array_merge(
+                        $event->permissions[Freeform::PERMISSION_NAMESPACE],
                         [
                             self::PERMISSION_EXPORT_PROFILES_ACCESS => [
                                 'label'  => self::t('Access Export Profiles'),
@@ -281,5 +290,29 @@ class FreeformPro extends Plugin
 
         \Craft::$app->getCache()->delete(Freeform::VERSION_CACHE_KEY);
         \Craft::$app->getCache()->delete(Freeform::VERSION_CACHE_TIMESTAMP_KEY);
+    }
+
+    /**
+     * Install only if Freeform Lite is installed
+     *
+     * @return bool
+     */
+    protected function beforeInstall(): bool
+    {
+        $isLiteInstalled = (bool) (new Query())
+            ->select('id')
+            ->from('{{%plugins}}')
+            ->where(['handle' => 'freeform'])
+            ->one();
+
+        if (!$isLiteInstalled) {
+            \Craft::$app->session->setNotice(
+                \Craft::t('app', 'You must install Freeform Lite before you can install Freeform Pro')
+            );
+
+            return false;
+        }
+
+        return true;
     }
 }

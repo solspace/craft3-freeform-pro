@@ -18,6 +18,14 @@ use Solspace\FreeformPro\Services\WidgetsService;
 abstract class AbstractWidget extends Widget
 {
     /**
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->title ?: static::displayName();
+    }
+
+    /**
      * @return FormsService
      */
     protected function getFormService(): FormsService
