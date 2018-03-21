@@ -162,12 +162,15 @@ class QuickExportController extends BaseProController
             return;
         }
 
-        PermissionHelper::requirePermission(
-            PermissionHelper::prepareNestedPermission(
-                Freeform::PERMISSION_SUBMISSIONS_MANAGE,
-                $formId
-            )
-        );
+        $canManageAll = PermissionHelper::checkPermission(Freeform::PERMISSION_SUBMISSIONS_MANAGE);
+        if (!$canManageAll) {
+            PermissionHelper::requirePermission(
+                PermissionHelper::prepareNestedPermission(
+                    Freeform::PERMISSION_SUBMISSIONS_MANAGE,
+                    $formId
+                )
+            );
+        }
 
         $form      = $formModel->getForm();
         $fieldData = $exportFields[$form->getId()];

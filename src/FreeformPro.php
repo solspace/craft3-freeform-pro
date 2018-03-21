@@ -65,10 +65,12 @@ class FreeformPro extends Plugin
     {
         parent::init();
 
-        $this->controllerMap = [
-            'quick-export'    => QuickExportController::class,
-            'export-profiles' => ExportProfilesController::class,
-        ];
+        if (!\Craft::$app->request->isConsoleRequest) {
+            $this->controllerMap = [
+                'quick-export'    => QuickExportController::class,
+                'export-profiles' => ExportProfilesController::class,
+            ];
+        }
 
         $this->setComponents(
             [
