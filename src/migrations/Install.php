@@ -42,8 +42,14 @@ class Install extends StreamlinedInstallMigration
      *
      * @inheritDoc
      */
-    protected function afterInstall()
+    protected function afterInstall(): bool
     {
+        // We pass the update for old Freeform Pro's for PgSQL users for now
+        // Until a solution for this can be found
+        if ($this->db->getDriverName() === 'pgsql') {
+            return true;
+        }
+
         try {
             (new Query())->select(['id'])->from('{{%freeform_export_profiles_backup}}')->one();
             $tableExists = true;
@@ -52,7 +58,7 @@ class Install extends StreamlinedInstallMigration
         }
 
         if (!$tableExists) {
-            return false;
+            return true;
         }
 
         $this->dropForeignKey('freeform_export_profiles_formId_fk', '{{%freeform_export_profiles}}');

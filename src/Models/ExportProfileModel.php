@@ -174,7 +174,7 @@ class ExportProfileModel extends Model
             if (
                 $field instanceof NoStorageInterface ||
                 !$field->getId() ||
-                in_array($field->getId(), $storedFieldIds, true)
+                \in_array($field->getId(), $storedFieldIds, true)
             ) {
                 continue;
             }
@@ -223,25 +223,25 @@ class ExportProfileModel extends Model
             $fieldName = is_numeric($fieldId) ? Submission::getFieldColumnName($fieldId) : $fieldId;
             switch ($fieldName) {
                 case 'title':
-                    $fieldName = 'c.' . $fieldName;
+                    $fieldName = 'c.[[' . $fieldName . ']]';
                     break;
                 case 'status':
-                    $fieldName = 'stat.name AS status';
+                    $fieldName = 'stat.[[name]] AS status';
                     break;
                 default:
-                    $fieldName = 's.' . $fieldName;
+                    $fieldName = 's.[[' . $fieldName . ']]';
                     break;
             }
 
             $searchableFields[] = $fieldName;
         }
 
-        $conditions = ['s.formId = :formId'];
+        $conditions = ['s.[[formId]] = :formId'];
         $parameters = ['formId' => $this->formId];
 
         $dateRangeEnd = $this->getDateRangeEnd();
         if ($dateRangeEnd) {
-            $conditions[] = 's.dateCreated >= :dateRangeEnd';
+            $conditions[] = 's.[[dateCreated]] >= :dateRangeEnd';
             $parameters['dateRangeEnd'] = $dateRangeEnd->format('Y-m-d H:i:s');
         }
 
@@ -257,28 +257,28 @@ class ExportProfileModel extends Model
                 }
 
                 if ($fieldId === 'id') {
-                    $fieldId = 's.id';
+                    $fieldId = 's.[[id]]';
                 }
 
                 if ($fieldId === 'dateCreated') {
-                    $fieldId = 's.dateCreated';
+                    $fieldId = 's.[[dateCreated]]';
                 }
 
                 if ($fieldId === 'status') {
-                    $fieldId = 'stat.name AS status';
+                    $fieldId = 'stat.[[name]] AS status';
                 }
 
                 switch ($type) {
                     case '=':
-                        $conditions[] = "$fieldId = :field_$id";
+                        $conditions[] = "[[$fieldId]] = :field_$id";
                         break;
 
                     case '!=':
-                        $conditions[] = "$fieldId != :field_$id";
+                        $conditions[] = "[[$fieldId]] != :field_$id";
                         break;
 
                     case 'like':
-                        $conditions[] = "$fieldId LIKE :field_$id";
+                        $conditions[] = "[[$fieldId]] LIKE :field_$id";
                         break;
 
                     default:
@@ -292,8 +292,8 @@ class ExportProfileModel extends Model
         $command = (new Query())
             ->select(implode(',', $searchableFields))
             ->from(Submission::TABLE . ' s')
-            ->innerJoin(StatusRecord::TABLE . ' stat', 'stat.id = s.statusId')
-            ->innerJoin('{{%content}} c', 'c.elementId = s.id')
+            ->innerJoin(StatusRecord::TABLE . ' stat', 'stat.[[id]] = s.[[statusId]]')
+            ->innerJoin('{{%content}} c', 'c.[[elementId]] = s.[[id]]')
             ->where(implode(' AND ', $conditions), $parameters);
 
         if ($this->limit) {
@@ -301,7 +301,7 @@ class ExportProfileModel extends Model
         }
 
         if (is_array($this->statuses)) {
-            $command->andWhere(['IN', 'statusId', $this->statuses]);
+            $command->andWhere(['IN', '[[statusId]]', $this->statuses]);
         }
 
         return $command;

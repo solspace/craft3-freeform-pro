@@ -197,13 +197,9 @@ class QuickExportController extends BaseProController
 
         $data = (new Query())
             ->select($searchableFields)
-            ->innerJoin('content c', 'c.elementId = s.id')
+            ->innerJoin('{{%content}} c', 'c.[[elementId]] = s.[[id]]')
             ->from(Submission::TABLE . ' s')
-            ->where(
-                [
-                    'formId' => $form->getId(),
-                ]
-            )
+            ->where(['formId' => $form->getId()])
             ->all();
 
         switch ($exportType) {
