@@ -24,8 +24,11 @@ use Solspace\Freeform\Library\Logging\LoggerInterface;
 class Pipedrive extends AbstractCRMIntegration
 {
     const SETTING_API_TOKEN = 'api_token';
-    const TITLE             = 'Pipedrive';
-    const LOG_CATEGORY      = 'Pipedrive';
+    const SETTING_USER_ID   = 'user_id';
+    const SETTING_STAGE_ID  = 'stage_id';
+
+    const TITLE        = 'Pipedrive';
+    const LOG_CATEGORY = 'Pipedrive';
 
     /**
      * Returns a list of additional settings for this integration
@@ -42,6 +45,20 @@ class Pipedrive extends AbstractCRMIntegration
                 'API Token',
                 'Enter your Pipedrive API token here.',
                 true
+            ),
+            new SettingBlueprint(
+                SettingBlueprint::TYPE_TEXT,
+                self::SETTING_USER_ID,
+                'User ID',
+                'Enter the Pipedrive User ID you want to assign leads to.',
+                false
+            ),
+            new SettingBlueprint(
+                SettingBlueprint::TYPE_TEXT,
+                self::SETTING_STAGE_ID,
+                'Stage ID',
+                'Enter the Pipedrive Stage ID you want the deal to be placed in.',
+                false
             ),
         ];
     }
@@ -133,6 +150,16 @@ class Pipedrive extends AbstractCRMIntegration
 
             if ($organizationId) {
                 $dealFields['org_id'] = $organizationId;
+            }
+
+            $userId = $this->getSetting(self::SETTING_USER_ID);
+            if ($userId) {
+                $dealFields['user_id'] = $userId;
+            }
+
+            $stageId = $this->getSetting(self::SETTING_STAGE_ID);
+            if ($stageId) {
+                $dealFields['stage_id'] = $stageId;
             }
 
             $response = $client->post(

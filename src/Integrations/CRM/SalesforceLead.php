@@ -31,6 +31,7 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
     const SETTING_CLIENT_SECRET = 'salesforce_client_secret';
     const SETTING_USER_LOGIN    = 'salesforce_username';
     const SETTING_USER_PASSWORD = 'salesforce_password';
+    const SETTING_LEAD_OWNER    = 'salesforce_lead_owner';
     const SETTING_SANDBOX       = 'salesforce_sandbox';
     const SETTING_CUSTOM_URL    = 'salesforce_custom_url';
     const SETTING_INSTANCE      = 'instance';
@@ -44,6 +45,13 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
     public static function getSettingBlueprints(): array
     {
         return [
+            new SettingBlueprint(
+                SettingBlueprint::TYPE_BOOL,
+                self::SETTING_LEAD_OWNER,
+                'Assign Lead Owner?',
+                'Enabling this will make Salesforce assign a lead owner based on lead owner assignment rules',
+                false
+            ),
             new SettingBlueprint(
                 SettingBlueprint::TYPE_BOOL,
                 self::SETTING_SANDBOX,
@@ -202,13 +210,16 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
         $client   = new Client();
         $endpoint = $this->getEndpoint('/sobjects/Lead');
 
+        $setOwner = $this->getSetting(self::SETTING_LEAD_OWNER);
+
         try {
             $response = $client->post(
                 $endpoint,
                 [
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $this->getAccessToken(),
-                        'Accept'        => 'application/json',
+                        'Authorization'      => 'Bearer ' . $this->getAccessToken(),
+                        'Accept'             => 'application/json',
+                        'Sforce-Auto-Assign' => $setOwner ? 'TRUE' : 'FALSE',
                     ],
                     'json'    => $keyValueList,
                 ]
