@@ -1,6 +1,8 @@
 <?php
 
 return [
+    // Settings
+    'freeform/settings/recaptcha'                            => 'freeform-pro/settings/provide-setting',
     // Export
     'freeform/export/export-dialogue'                        => 'freeform-pro/quick-export/export-dialogue',
     'freeform/export'                                        => 'freeform-pro/quick-export/index',

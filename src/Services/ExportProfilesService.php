@@ -389,8 +389,8 @@ class ExportProfilesService extends Component
                     $field = $form->getLayout()->getFieldById($matches[1]);
 
                     if ($field instanceof MultipleValueInterface) {
-                        $value = json_decode($value ?: '[]', true);
-                        if ($flattenArrays) {
+                        $value = (array) json_decode($value ?: '[]', true);
+                        if ($flattenArrays && \is_array($value)) {
                             $value = implode(', ', $value ?: []);
                         }
 

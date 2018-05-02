@@ -236,7 +236,7 @@ class ExportProfileModel extends Model
             $searchableFields[] = $fieldName;
         }
 
-        $conditions = ['s.[[formId]] = :formId'];
+        $conditions = ['s.[[formId]] = :formId', 's.isSpam  = false'];
         $parameters = ['formId' => $this->formId];
 
         $dateRangeEnd = $this->getDateRangeEnd();

@@ -18,18 +18,27 @@ use craft\services\Dashboard;
 use craft\services\Plugins;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
+use function foo\func;
 use Solspace\Commons\Helpers\PermissionHelper;
+use Solspace\Freeform\Events\Captchas\FetchCaptchasEvent;
 use Solspace\Freeform\Events\Fields\FetchFieldTypes;
 use Solspace\Freeform\Events\Freeform\RegisterCpSubnavItemsEvent;
+use Solspace\Freeform\Events\Freeform\RegisterSettingsNavigationEvent;
 use Solspace\Freeform\Events\Integrations\FetchCrmTypesEvent;
 use Solspace\Freeform\Events\Integrations\FetchMailingListTypesEvent;
 use Solspace\Freeform\Freeform;
+use Solspace\Freeform\Services\CaptchaService;
 use Solspace\Freeform\Services\CrmService;
 use Solspace\Freeform\Services\FieldsService;
 use Solspace\Freeform\Services\MailingListsService;
+use Solspace\Freeform\Services\SettingsService;
+use Solspace\FreeformPro\Captchas\ReCaptcha;
 use Solspace\FreeformPro\Controllers\ExportProfilesController;
 use Solspace\FreeformPro\Controllers\QuickExportController;
+use Solspace\FreeformPro\Controllers\SettingsController;
+use Solspace\FreeformPro\Models\Settings;
 use Solspace\FreeformPro\Services\ExportProfilesService;
+use Solspace\FreeformPro\Services\ReCaptchaService;
 use Solspace\FreeformPro\Services\WidgetsService;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
@@ -40,6 +49,7 @@ use yii\base\Event;
  *
  * @property WidgetsService        $widgets
  * @property ExportProfilesService $exportProfiles
+ * @property ReCaptchaService      $reCaptcha
  */
 class FreeformPro extends Plugin
 {
@@ -59,30 +69,122 @@ class FreeformPro extends Plugin
     }
 
     /**
+     * @return Settings
+     */
+    protected function createSettingsModel(): Settings
+    {
+        return new Settings();
+    }
+
+    /**
      * Add events
      */
     public function init()
     {
         parent::init();
 
+        $this->initControllers();
+        $this->initServices();
+
+        if (!class_exists(Freeform::class)) {
+            return;
+        }
+
+        $this->initRoutes();
+        $this->initIntegrations();
+        $this->initWidgets();
+        $this->initPermissions();
+        $this->initNavigation();
+        $this->initEventListeners();
+        $this->handlePluginChanges();
+    }
+
+    /**
+     * @param string $message
+     * @param array  $params
+     * @param string $language
+     *
+     * @return string
+     */
+    public static function t(string $message, array $params = [], string $language = null): string
+    {
+        return \Craft::t(self::TRANSLATION_CATEGORY, $message, $params, $language);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function afterInstall()
+    {
+        parent::afterInstall();
+
+        \Craft::$app->getCache()->multiSet(
+            [
+                Freeform::VERSION_CACHE_KEY           => Freeform::VERSION_PRO,
+                Freeform::VERSION_CACHE_TIMESTAMP_KEY => time(),
+            ]
+        );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function afterUninstall()
+    {
+        parent::afterUninstall();
+
+        \Craft::$app->getCache()->delete(Freeform::VERSION_CACHE_KEY);
+        \Craft::$app->getCache()->delete(Freeform::VERSION_CACHE_TIMESTAMP_KEY);
+    }
+
+    /**
+     * Install only if Freeform Lite is installed
+     *
+     * @return bool
+     */
+    protected function beforeInstall(): bool
+    {
+        $isLiteInstalled = (bool) (new Query())
+            ->select('id')
+            ->from('{{%plugins}}')
+            ->where(['handle' => 'freeform'])
+            ->one();
+
+        if (!$isLiteInstalled) {
+            \Craft::$app->session->setNotice(
+                \Craft::t('app', 'You must install Freeform Lite before you can install Freeform Pro')
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function initControllers()
+    {
         if (!\Craft::$app->request->isConsoleRequest) {
             $this->controllerMap = [
                 'quick-export'    => QuickExportController::class,
                 'export-profiles' => ExportProfilesController::class,
+                'settings'        => SettingsController::class,
             ];
         }
+    }
 
+    private function initServices()
+    {
         $this->setComponents(
             [
                 'widgets'        => WidgetsService::class,
                 'exportProfiles' => ExportProfilesService::class,
+                'reCaptcha'      => ReCaptchaService::class,
             ]
         );
+    }
 
-        if (!class_exists('Solspace\Freeform\Freeform')) {
-            return;
-        }
-
+    private function initRoutes()
+    {
         Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
@@ -91,7 +193,10 @@ class FreeformPro extends Plugin
                 $event->rules = array_merge($event->rules, $routes);
             }
         );
+    }
 
+    private function initIntegrations()
+    {
         Event::on(
             CrmService::class,
             CrmService::EVENT_FETCH_TYPES,
@@ -160,7 +265,10 @@ class FreeformPro extends Plugin
                 }
             }
         );
+    }
 
+    private function initWidgets()
+    {
         Event::on(
             Dashboard::class,
             Dashboard::EVENT_REGISTER_WIDGET_TYPES,
@@ -185,7 +293,10 @@ class FreeformPro extends Plugin
                 }
             }
         );
+    }
 
+    private function initPermissions()
+    {
         if (\Craft::$app->getEdition() >= \Craft::Pro) {
             Event::on(
                 UserPermissions::class,
@@ -213,7 +324,10 @@ class FreeformPro extends Plugin
                 }
             );
         }
+    }
 
+    private function initNavigation()
+    {
         Event::on(
             Freeform::class,
             Freeform::EVENT_REGISTER_SUBNAV_ITEMS,
@@ -228,7 +342,27 @@ class FreeformPro extends Plugin
                 }
             }
         );
+    }
 
+    private function initEventListeners()
+    {
+        Event::on(
+            FieldsService::class,
+            FieldsService::EVENT_AFTER_VALIDATE,
+            [$this->reCaptcha, 'validateReCaptcha']
+        );
+
+        Event::on(
+            SettingsService::class,
+            SettingsService::EVENT_REGISTER_SETTINGS_NAVIGATION,
+            function (RegisterSettingsNavigationEvent $event) {
+                $event->addNavigationItem('recaptcha', FreeformPro::t('reCAPTCHA'), 'spam');
+            }
+        );
+    }
+
+    private function handlePluginChanges()
+    {
         Event::on(
             Plugins::class,
             Plugins::EVENT_AFTER_ENABLE_PLUGIN,
@@ -254,67 +388,5 @@ class FreeformPro extends Plugin
                 }
             }
         );
-    }
-
-    /**
-     * @param string $message
-     * @param array  $params
-     * @param string $language
-     *
-     * @return string
-     */
-    public static function t(string $message, array $params = [], string $language = null): string
-    {
-        return \Craft::t(self::TRANSLATION_CATEGORY, $message, $params, $language);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function afterInstall()
-    {
-        parent::afterInstall();
-
-        \Craft::$app->getCache()->multiSet(
-            [
-                Freeform::VERSION_CACHE_KEY           => Freeform::VERSION_PRO,
-                Freeform::VERSION_CACHE_TIMESTAMP_KEY => time(),
-            ]
-        );
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function afterUninstall()
-    {
-        parent::afterUninstall();
-
-        \Craft::$app->getCache()->delete(Freeform::VERSION_CACHE_KEY);
-        \Craft::$app->getCache()->delete(Freeform::VERSION_CACHE_TIMESTAMP_KEY);
-    }
-
-    /**
-     * Install only if Freeform Lite is installed
-     *
-     * @return bool
-     */
-    protected function beforeInstall(): bool
-    {
-        $isLiteInstalled = (bool) (new Query())
-            ->select('id')
-            ->from('{{%plugins}}')
-            ->where(['handle' => 'freeform'])
-            ->one();
-
-        if (!$isLiteInstalled) {
-            \Craft::$app->session->setNotice(
-                \Craft::t('app', 'You must install Freeform Lite before you can install Freeform Pro')
-            );
-
-            return false;
-        }
-
-        return true;
     }
 }
