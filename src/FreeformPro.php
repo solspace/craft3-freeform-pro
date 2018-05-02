@@ -348,13 +348,13 @@ class FreeformPro extends Plugin
     {
         Event::on(
             FieldsService::class,
-            FieldsService::EVENT_AFTER_VALIDATE,
+            'afterValidate',
             [$this->reCaptcha, 'validateReCaptcha']
         );
 
         Event::on(
             SettingsService::class,
-            SettingsService::EVENT_REGISTER_SETTINGS_NAVIGATION,
+            'registerSettingsNavigation',
             function (RegisterSettingsNavigationEvent $event) {
                 $event->addNavigationItem('recaptcha', FreeformPro::t('reCAPTCHA'), 'spam');
             }
