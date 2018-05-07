@@ -96,6 +96,10 @@ class QuickExportController extends BaseProController
                     'label'   => 'Title',
                     'checked' => true,
                 ];
+                $fieldSetting['ip']          = [
+                    'label'   => 'IP',
+                    'checked' => true,
+                ];
                 $fieldSetting['dateCreated'] = [
                     'label'   => 'Date Created',
                     'checked' => true,

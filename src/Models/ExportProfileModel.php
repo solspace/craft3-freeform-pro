@@ -160,6 +160,10 @@ class ExportProfileModel extends Model
                 'label'   => 'Title',
                 'checked' => true,
             ];
+            $fieldSettings['ip']       = [
+                'label'   => 'IP',
+                'checked' => true,
+            ];
             $fieldSettings['dateCreated'] = [
                 'label'   => 'Date Created',
                 'checked' => true,
@@ -224,6 +228,9 @@ class ExportProfileModel extends Model
             switch ($fieldName) {
                 case 'title':
                     $fieldName = 'c.[[' . $fieldName . ']]';
+                    break;
+                case 'ip':
+                    $fieldName = 's.[[' . $fieldName . ']]';
                     break;
                 case 'status':
                     $fieldName = 'stat.[[name]] AS status';

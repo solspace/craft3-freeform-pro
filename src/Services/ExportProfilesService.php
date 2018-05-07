@@ -321,6 +321,10 @@ class ExportProfilesService extends Component
                         $label = 'Date Created';
                         break;
 
+                    case 'ip':
+                        $label = 'IP';
+                        break;
+
                     default:
                         $label = ucfirst($label);
                         break;

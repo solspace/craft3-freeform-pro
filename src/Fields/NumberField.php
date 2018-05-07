@@ -123,17 +123,4 @@ class NumberField extends TextField
 
         return $constraints;
     }
-
-    /**
-     * @inheritDoc
-     */
-    protected function getInputHtml(): string
-    {
-        $output = parent::getInputHtml();
-        $output = str_replace('/>', '', $output);
-
-        $output .= '/>';
-
-        return $output;
-    }
 }
