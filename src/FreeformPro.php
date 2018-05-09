@@ -306,10 +306,11 @@ class FreeformPro extends Plugin
                         $event->permissions[Freeform::PERMISSION_NAMESPACE] = [];
                     }
 
-                    $event->permissions[Freeform::PERMISSION_NAMESPACE] = array_merge(
-                        $event->permissions[Freeform::PERMISSION_NAMESPACE],
-                        [
-                            self::PERMISSION_EXPORT_PROFILES_ACCESS => [
+                    $permissions = $event->permissions[Freeform::PERMISSION_NAMESPACE];
+                    $orderedPermissions = [];
+                    foreach ($permissions as $key => $value) {
+                        if ($key === Freeform::PERMISSION_SETTINGS_ACCESS) {
+                            $orderedPermissions[self::PERMISSION_EXPORT_PROFILES_ACCESS] = [
                                 'label'  => self::t('Access Export Profiles'),
                                 'nested' => [
                                     self::PERMISSION_EXPORT_PROFILES_MANAGE => [
@@ -318,9 +319,12 @@ class FreeformPro extends Plugin
                                         ),
                                     ],
                                 ],
-                            ],
-                        ]
-                    );
+                            ];
+                        }
+                        $orderedPermissions[$key] = $value;
+                    }
+
+                    $event->permissions[Freeform::PERMISSION_NAMESPACE] = $orderedPermissions;
                 }
             );
         }
