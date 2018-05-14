@@ -394,7 +394,7 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
             throw new CRMIntegrationNotFoundException("Salesforce response data doesn't contain the instance URL");
         }
 
-        $pattern = '/https:\/\/([a-z0-9]+)\./';
+        $pattern = '/https:\/\/([A-Za-z0-9\-]+)\./';
 
         preg_match($pattern, $responseData->instance_url, $matches);
 
