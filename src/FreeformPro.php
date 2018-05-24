@@ -18,27 +18,23 @@ use craft\services\Dashboard;
 use craft\services\Plugins;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
-use function foo\func;
 use Solspace\Commons\Helpers\PermissionHelper;
-use Solspace\Freeform\Events\Captchas\FetchCaptchasEvent;
 use Solspace\Freeform\Events\Fields\FetchFieldTypes;
 use Solspace\Freeform\Events\Freeform\RegisterCpSubnavItemsEvent;
 use Solspace\Freeform\Events\Freeform\RegisterSettingsNavigationEvent;
 use Solspace\Freeform\Events\Integrations\FetchCrmTypesEvent;
 use Solspace\Freeform\Events\Integrations\FetchMailingListTypesEvent;
 use Solspace\Freeform\Freeform;
-use Solspace\Freeform\Services\CaptchaService;
 use Solspace\Freeform\Services\CrmService;
 use Solspace\Freeform\Services\FieldsService;
 use Solspace\Freeform\Services\MailingListsService;
 use Solspace\Freeform\Services\SettingsService;
-use Solspace\FreeformPro\Captchas\ReCaptcha;
 use Solspace\FreeformPro\Controllers\ExportProfilesController;
 use Solspace\FreeformPro\Controllers\QuickExportController;
 use Solspace\FreeformPro\Controllers\SettingsController;
 use Solspace\FreeformPro\Models\Settings;
 use Solspace\FreeformPro\Services\ExportProfilesService;
-use Solspace\FreeformPro\Services\ReCaptchaService;
+use Solspace\FreeformPro\Services\RecaptchaService;
 use Solspace\FreeformPro\Services\WidgetsService;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
@@ -49,7 +45,7 @@ use yii\base\Event;
  *
  * @property WidgetsService        $widgets
  * @property ExportProfilesService $exportProfiles
- * @property ReCaptchaService      $reCaptcha
+ * @property RecaptchaService      $recaptcha
  */
 class FreeformPro extends Plugin
 {
@@ -178,7 +174,7 @@ class FreeformPro extends Plugin
             [
                 'widgets'        => WidgetsService::class,
                 'exportProfiles' => ExportProfilesService::class,
-                'reCaptcha'      => ReCaptchaService::class,
+                'recaptcha'      => RecaptchaService::class,
             ]
         );
     }
@@ -306,7 +302,7 @@ class FreeformPro extends Plugin
                         $event->permissions[Freeform::PERMISSION_NAMESPACE] = [];
                     }
 
-                    $permissions = $event->permissions[Freeform::PERMISSION_NAMESPACE];
+                    $permissions        = $event->permissions[Freeform::PERMISSION_NAMESPACE];
                     $orderedPermissions = [];
                     foreach ($permissions as $key => $value) {
                         if ($key === Freeform::PERMISSION_SETTINGS_ACCESS) {
@@ -353,7 +349,7 @@ class FreeformPro extends Plugin
         Event::on(
             FieldsService::class,
             'afterValidate',
-            [$this->reCaptcha, 'validateReCaptcha']
+            [$this->recaptcha, 'validateRecaptcha']
         );
 
         Event::on(

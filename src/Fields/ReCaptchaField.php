@@ -9,7 +9,7 @@ use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\SingleValueI
 use Solspace\Freeform\Library\Composer\Components\Fields\Traits\SingleValueTrait;
 use Solspace\FreeformPro\FreeformPro;
 
-class ReCaptchaField extends AbstractField implements NoStorageInterface, SingleValueInterface, InputOnlyInterface
+class RecaptchaField extends AbstractField implements NoStorageInterface, SingleValueInterface, InputOnlyInterface
 {
     use SingleValueTrait;
 
