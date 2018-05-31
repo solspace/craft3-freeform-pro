@@ -377,7 +377,7 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
     public function convertCustomFieldValue(FieldObject $fieldObject, $value = null)
     {
         if ($fieldObject->getType() === FieldObject::TYPE_ARRAY) {
-            return is_array($value) ? implode(';', $value) : $value;
+            return \is_array($value) ? implode(';', $value) : $value;
         }
 
         return parent::convertCustomFieldValue($fieldObject, $value);
@@ -394,17 +394,7 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
             throw new CRMIntegrationNotFoundException("Salesforce response data doesn't contain the instance URL");
         }
 
-        $pattern = '/https:\/\/([A-Za-z0-9\-]+)\./';
-
-        preg_match($pattern, $responseData->instance_url, $matches);
-
-        if (!isset($matches[1])) {
-            throw new CRMIntegrationNotFoundException(
-                sprintf("Could not pull the instance from '%s'", $responseData->instance_url)
-            );
-        }
-
-        $this->setSetting(self::SETTING_INSTANCE, $matches[1]);
+        $this->setSetting(self::SETTING_INSTANCE, $responseData->instance_url);
     }
 
     /**
@@ -435,11 +425,15 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
         $instance        = $this->getSetting(self::SETTING_INSTANCE);
         $usingCustomUrls = $this->getSetting(self::SETTING_CUSTOM_URL);
 
-        return sprintf(
-            'https://%s%s.salesforce.com/services/data/v20.0/',
-            $instance,
-            ($usingCustomUrls ? '.my' : '')
-        );
+        if (strpos($instance, 'https://') !== 0) {
+            return sprintf(
+                'https://%s%s.salesforce.com/services/data/v20.0/',
+                $instance,
+                ($usingCustomUrls ? '.my' : '')
+            );
+        }
+
+        return $instance . '/services/data/v20.0/';
     }
 
     /**

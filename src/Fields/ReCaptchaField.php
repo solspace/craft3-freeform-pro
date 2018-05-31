@@ -24,12 +24,21 @@ class RecaptchaField extends AbstractField implements NoStorageInterface, Single
     /**
      * @inheritDoc
      */
+    public function getHandle()
+    {
+        return 'grecaptcha_' . $this->getHash();
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function getInputHtml(): string
     {
         $key = FreeformPro::getInstance()->getSettings()->recaptchaKey;
 
         $output = '<script src="https://www.google.com/recaptcha/api.js"></script>';
         $output .= '<div class="g-recaptcha" data-sitekey="' . ($key ?: 'invalid') . '"></div>';
+        $output .= '<input type="hidden" name="' . $this->getHandle() . '" />';
 
         return $output;
     }
