@@ -237,9 +237,10 @@ class DatetimeField extends TextField implements InitialValueInterface
             . $this->getAttributeString('id', $this->getIdAttribute())
             . $this->getAttributeString('class', $classString)
             . $this->getAttributeString('data-datepicker-format', $this->getDatepickerFormat())
-            . $this->getAttributeString('data-datepicker-enableTime', $hasTime)
-            . $this->getAttributeString('data-datepicker-enableDate', $hasDate)
-            . $this->getAttributeString('data-datepicker-clock_24h', $this->isClock24h())
+            . $this->getAttributeString('data-datepicker-enabletime', $hasTime ?: '')
+            . $this->getAttributeString('data-datepicker-enabledate', $hasDate ?: '')
+            . $this->getAttributeString('data-datepicker-clock_24h', $this->isClock24h() ?: '')
+            . $this->getAttributeString('data-datepicker-locale', \Craft::$app->locale->id)
             . $this->getAttributeString(
                 'placeholder',
                 $this->translate($attributes->getPlaceholder() ?: $this->getPlaceholder())

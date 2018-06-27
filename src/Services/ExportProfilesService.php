@@ -5,6 +5,7 @@ namespace Solspace\FreeformPro\Services;
 use craft\db\Query;
 use Solspace\Freeform\Elements\Submission;
 use Solspace\Freeform\Freeform;
+use Solspace\Freeform\Library\Composer\Components\Fields\FileUploadField;
 use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\MultipleValueInterface;
 use Solspace\Freeform\Library\Composer\Components\Fields\TextareaField;
 use Solspace\Freeform\Library\Composer\Components\Form;
@@ -391,6 +392,27 @@ class ExportProfilesService extends Component
 
                 try {
                     $field = $form->getLayout()->getFieldById($matches[1]);
+
+                    if ($field instanceof FileUploadField) {
+                        $value = (array) json_decode($value ?: '[]', true);
+                        $combo = [];
+
+                        foreach ($value as $assetId) {
+                            $asset = \Craft::$app->assets->getAssetById((int) $assetId);
+                            if ($asset) {
+                                $assetValue = $asset->filename;
+                                if ($asset->getUrl()) {
+                                    $assetValue = $asset->getUrl();
+                                }
+
+                                $combo[] = $assetValue;
+                            }
+                        }
+
+                        $data[$index][$fieldId] = implode(', ', $combo);
+
+                        continue;
+                    }
 
                     if ($field instanceof MultipleValueInterface) {
                         $value = (array) json_decode($value ?: '[]', true);
