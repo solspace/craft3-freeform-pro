@@ -10,6 +10,9 @@ class PhoneField extends TextField
     /** @var string */
     protected $pattern;
 
+    /** @var bool */
+    protected $useJsMask;
+
     /**
      * Return the field TYPE
      *
@@ -18,6 +21,14 @@ class PhoneField extends TextField
     public function getType(): string
     {
         return self::TYPE_PHONE;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUseJsMask(): bool
+    {
+        return (bool) $this->useJsMask;
     }
 
     /**
@@ -40,5 +51,27 @@ class PhoneField extends TextField
         );
 
         return $constraints;
+    }
+
+    /**
+     * @return string
+     */
+    public function getInputHtml(): string
+    {
+        if (!$this->isUseJsMask()) {
+            return parent::getInputHtml();
+        }
+
+        $this->addInputClass('form-phone-pattern-field');
+
+        $pattern = $this->getPattern();
+        $pattern = str_replace('x', '0', $pattern);
+
+        $output  = parent::getInputHtml();
+        $output  = str_replace('/>', '', $output);
+        $output  .= $this->getAttributeString('data-pattern', $pattern);
+        $output  .= ' />';
+
+        return $output;
     }
 }

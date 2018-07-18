@@ -321,6 +321,11 @@ class MailChimp extends AbstractMailingListIntegration
                 switch ($field->type) {
                     case 'text':
                     case 'website':
+                    case 'url':
+                    case 'dropdown':
+                    case 'radio':
+                    case 'date':
+                    case 'zip':
                         $type = FieldObject::TYPE_STRING;
                         break;
 
