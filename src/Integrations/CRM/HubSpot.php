@@ -198,58 +198,24 @@ class HubSpot extends AbstractCRMIntegration
      */
     public function fetchFields(): array
     {
-        $client = new Client();
-
-        $response = $client->get(
-            $this->getEndpoint('/properties/v1/deals/properties/'),
-            ['query' => ['hapikey' => $this->getAccessToken()]]
+        $fieldList = [];
+        $this->extractCustomFields(
+            '/properties/v1/deals/properties/',
+            'deal',
+            $fieldList
         );
 
-        $data = json_decode((string) $response->getBody());
+        $this->extractCustomFields(
+            '/properties/v1/contacts/properties/',
+            'contact',
+            $fieldList
+        );
 
-        $fieldList = [
-            new FieldObject('contact___email', 'Email', FieldObject::TYPE_STRING, false),
-            new FieldObject('contact___firstname', 'First Name', FieldObject::TYPE_STRING, false),
-            new FieldObject('contact___lastname', 'Last Name', FieldObject::TYPE_STRING, false),
-            new FieldObject('contact___website', 'Website', FieldObject::TYPE_STRING, false),
-            new FieldObject('contact___phone', 'Phone', FieldObject::TYPE_NUMERIC, false),
-            new FieldObject('contact___address', 'Address', FieldObject::TYPE_STRING, false),
-            new FieldObject('contact___city', 'City', FieldObject::TYPE_STRING, false),
-            new FieldObject('contact___state', 'State', FieldObject::TYPE_STRING, false),
-            new FieldObject('contact___zip', 'Zip', FieldObject::TYPE_NUMERIC, false),
-            new FieldObject('company___name', 'Company Name', FieldObject::TYPE_STRING, false),
-            new FieldObject('company___description', 'Company Description', FieldObject::TYPE_STRING, false),
-        ];
-
-        foreach ($data as $field) {
-            if ($field->readOnlyValue || $field->hidden || $field->calculated) {
-                continue;
-            }
-
-            $type = null;
-            switch ($field->type) {
-                case 'string':
-                    $type = FieldObject::TYPE_STRING;
-                    break;
-
-                case 'number':
-                    $type = FieldObject::TYPE_NUMERIC;
-                    break;
-            }
-
-            if (null === $type) {
-                continue;
-            }
-
-            $fieldObject = new FieldObject(
-                'deal___' . $field->name,
-                $field->label,
-                $type,
-                false
-            );
-
-            $fieldList[] = $fieldObject;
-        }
+        $this->extractCustomFields(
+            '/properties/v1/companies/properties/',
+            'company',
+            $fieldList
+        );
 
         return $fieldList;
     }
@@ -289,5 +255,59 @@ class HubSpot extends AbstractCRMIntegration
     protected function getApiRootUrl(): string
     {
         return 'https://api.hubapi.com/';
+    }
+
+    /**
+     * @param string $endpoint
+     * @param string $dataType
+     * @param array  $fieldList
+     */
+    private function extractCustomFields(string $endpoint, string $dataType, array &$fieldList)
+    {
+        $client   = new Client();
+        $response = $client->get(
+            $this->getEndpoint($endpoint),
+            ['query' => ['hapikey' => $this->getAccessToken()]]
+        );
+
+        $data = json_decode((string) $response->getBody());
+
+        foreach ($data as $field) {
+            if ($field->readOnlyValue || $field->hidden || $field->calculated) {
+                continue;
+            }
+
+            $type = null;
+            switch ($field->type) {
+                case 'string':
+                case 'enumeration':
+                case 'datetime':
+                case 'phone_number':
+                    $type = FieldObject::TYPE_STRING;
+                    break;
+
+                case 'bool':
+                    $type = FieldObject::TYPE_BOOLEAN;
+                    break;
+
+                case 'number':
+                    $type = FieldObject::TYPE_NUMERIC;
+                    break;
+            }
+
+            if (null === $type) {
+                continue;
+            }
+
+            $dataLabel   = ucfirst($dataType);
+            $fieldObject = new FieldObject(
+                $dataType . '___' . $field->name,
+                $field->label . " ($dataLabel)",
+                $type,
+                false
+            );
+
+            $fieldList[] = $fieldObject;
+        }
     }
 }
