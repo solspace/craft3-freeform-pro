@@ -169,11 +169,28 @@ class SharpSpring extends AbstractCRMIntegration
             $type = null;
             switch ($field->dataType) {
                 case 'text':
+                case 'string':
+                case 'picklist':
+                case 'phone':
+                case 'url':
+                case 'textarea':
+                case 'country':
+                case 'checkbox':
+                case 'date':
+                case 'bit':
+                case 'hidden':
+                case 'state':
+                case 'radio':
+                case 'datetime':
                     $type = FieldObject::TYPE_STRING;
                     break;
 
                 case 'int':
                     $type = FieldObject::TYPE_NUMERIC;
+                    break;
+
+                case 'boolean':
+                    $type = FieldObject::TYPE_BOOLEAN;
                     break;
             }
 
