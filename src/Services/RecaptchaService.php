@@ -5,11 +5,15 @@ namespace Solspace\FreeformPro\Services;
 use craft\base\Component;
 use GuzzleHttp\Client;
 use Solspace\Freeform\Events\Fields\ValidateEvent;
+use Solspace\Freeform\Freeform;
 use Solspace\FreeformPro\Fields\RecaptchaField;
 use Solspace\FreeformPro\FreeformPro;
 
 class RecaptchaService extends Component
 {
+    /**
+     * @param ValidateEvent $event
+     */
     public function validateRecaptcha(ValidateEvent $event)
     {
         $field = $event->getField();
@@ -19,7 +23,7 @@ class RecaptchaService extends Component
             if (!$response) {
                 $field->addError(FreeformPro::t('Please verify that you are not a robot.'));
             } else {
-                $secret = FreeformPro::getInstance()->getSettings()->recaptchaSecret;
+                $secret = Freeform::getInstance()->getSettings()->recaptchaSecret;
 
                 $client = new Client();
                 $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [

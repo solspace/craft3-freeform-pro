@@ -3,7 +3,7 @@
 
 {% block actionButton %}
 
-    {% if currentUser.can("freeform-exportProfilesManage") %}
+    {% if currentUser.can("freeform-pro-exportProfilesManage") %}
 
         <div class="buttons">
             {% set forms = craft.freeform.forms %}
@@ -57,7 +57,7 @@
             {% for profile in exportProfiles %}
                 <tr data-id="{{ profile.id }}" data-name="{{ profile.name|t }}">
                     <th scope="row" data-title="{{ 'Name'|t }}">
-                        {% if currentUser.can("freeform-exportProfilesManage") %}
+                        {% if currentUser.can("freeform-pro-exportProfilesManage") %}
                             <a href="{{ url('freeform/export-profiles/' ~ profile.id) }}">
                                 {{ profile.name }}
                             </a>
@@ -90,7 +90,7 @@
                         </form>
                     </td>
                     <td class="thin">
-                        {% if currentUser.can("freeform-exportProfilesManage") %}
+                        {% if currentUser.can("freeform-pro-exportProfilesManage") %}
                             <a class="delete icon" title="{{ 'Delete'|t }}" role="button"></a>
                         {% endif %}
                     </td>

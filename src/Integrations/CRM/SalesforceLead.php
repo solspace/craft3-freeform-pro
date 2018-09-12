@@ -259,22 +259,19 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
         $client   = new Client();
         $endpoint = $this->getEndpoint('/');
 
-        try {
-            $response = $client->get(
-                $endpoint,
-                [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $this->getAccessToken(),
-                        'Content-Type'  => 'application/json',
-                    ],
-                ]
-            );
-            $json     = json_decode((string) $response->getBody(), true);
+        $response = $client->get(
+            $endpoint,
+            [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->getAccessToken(),
+                    'Content-Type'  => 'application/json',
+                ],
+            ]
+        );
 
-            return !empty($json);
-        } catch (RequestException $exception) {
-            throw new IntegrationException($exception->getMessage(), $exception->getCode(), $exception->getPrevious());
-        }
+        $json = json_decode((string) $response->getBody(), true);
+
+        return !empty($json);
     }
 
     /**

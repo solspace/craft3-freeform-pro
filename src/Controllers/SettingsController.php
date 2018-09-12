@@ -23,7 +23,7 @@ class SettingsController extends BaseProController
         $this->requirePostRequest();
         $postData = \Craft::$app->request->post('settings', []);
 
-        $plugin = FreeformPro::getInstance();
+        $plugin = Freeform::getInstance();
         $plugin->setSettings($postData);
 
         if (\Craft::$app->plugins->savePluginSettings($plugin, $postData)) {
@@ -38,6 +38,11 @@ class SettingsController extends BaseProController
         );
     }
 
+    /**
+     * @return Response
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\web\ForbiddenHttpException
+     */
     public function actionProvideSetting(): Response
     {
         PermissionHelper::requirePermission(Freeform::PERMISSION_SETTINGS_ACCESS);
@@ -48,7 +53,7 @@ class SettingsController extends BaseProController
         return $this->renderTemplate(
             'freeform-pro/_settings/' . (string) $template,
             [
-                'settings' => FreeformPro::getInstance()->getSettings(),
+                'settings' => Freeform::getInstance()->getSettings(),
             ]
         );
     }
