@@ -11,6 +11,7 @@ use Solspace\Freeform\Library\Composer\Components\Form;
 use Solspace\Freeform\Library\Exceptions\FreeformException;
 use Solspace\Freeform\Models\FormModel;
 use Solspace\Freeform\Records\StatusRecord;
+use Solspace\FreeformPayments\Fields\CreditCardDetailsField;
 
 class ExportProfileModel extends Model
 {
@@ -37,6 +38,7 @@ class ExportProfileModel extends Model
 
     /** @var array */
     public $statuses;
+
     /**
      * @param Form $form
      *
@@ -136,8 +138,11 @@ class ExportProfileModel extends Model
                 if (is_numeric($fieldId)) {
                     try {
                         $field = $form->getLayout()->getFieldById($fieldId);
-                        $label = $field->getLabel();
+                        if ($field instanceof CreditCardDetailsField) {
+                            continue;
+                        }
 
+                        $label            = $field->getLabel();
                         $storedFieldIds[] = $field->getId();
                     } catch (FreeformException $e) {
                         continue;
@@ -160,7 +165,7 @@ class ExportProfileModel extends Model
                 'label'   => 'Title',
                 'checked' => true,
             ];
-            $fieldSettings['ip']       = [
+            $fieldSettings['ip']          = [
                 'label'   => 'IP',
                 'checked' => true,
             ];
@@ -168,7 +173,7 @@ class ExportProfileModel extends Model
                 'label'   => 'Date Created',
                 'checked' => true,
             ];
-            $fieldSettings['status'] = [
+            $fieldSettings['status']      = [
                 'label'   => 'Status',
                 'checked' => true,
             ];
@@ -177,6 +182,7 @@ class ExportProfileModel extends Model
         foreach ($form->getLayout()->getFields() as $field) {
             if (
                 $field instanceof NoStorageInterface ||
+                $field instanceof CreditCardDetailsField ||
                 !$field->getId() ||
                 \in_array($field->getId(), $storedFieldIds, true)
             ) {
@@ -248,7 +254,7 @@ class ExportProfileModel extends Model
 
         $dateRangeEnd = $this->getDateRangeEnd();
         if ($dateRangeEnd) {
-            $conditions[] = 's.[[dateCreated]] >= :dateRangeEnd';
+            $conditions[]               = 's.[[dateCreated]] >= :dateRangeEnd';
             $parameters['dateRangeEnd'] = $dateRangeEnd->format('Y-m-d H:i:s');
         }
 
