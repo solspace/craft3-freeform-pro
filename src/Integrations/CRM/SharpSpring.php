@@ -298,27 +298,6 @@ class SharpSpring extends AbstractCRMIntegration
     }
 
     /**
-     * Sets presets for authorization on a Guzzle Client
-     *
-     * @return Client
-     * @throws IntegrationException
-     */
-    private function getAuthorizedClient(): Client
-    {
-        $client = new Client();
-        $client->setBaseUrl($this->getApiRootUrl());
-        $client->setDefaultOption(
-            'query',
-            [
-                'accountID' => $this->getAccountID(),
-                'secretKey' => $this->getSecretKey(),
-            ]
-        );
-
-        return $client;
-    }
-
-    /**
      * @param array $payload
      *
      * @return ResponseInterface
@@ -331,7 +310,7 @@ class SharpSpring extends AbstractCRMIntegration
             $this->getApiRootUrl(),
             [
                 'query' => [
-                    'accountId' => $this->getAccountID(),
+                    'accountID' => $this->getAccountID(),
                     'secretKey' => $this->getSecretKey(),
                 ],
                 'json'  => $payload,

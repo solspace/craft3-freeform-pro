@@ -299,6 +299,12 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
             $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
             $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
 
+            // If we get an unauthorized error - we throw the exception to trigger token refresh
+            if ($e->getCode() === 401) {
+                throw $e;
+            }
+
+
             return [];
         }
 
