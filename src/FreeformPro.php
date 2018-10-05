@@ -19,6 +19,7 @@ use craft\services\Plugins;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
 use Solspace\Commons\Helpers\PermissionHelper;
+use Solspace\Freeform\Controllers\SubmissionsController;
 use Solspace\Freeform\Events\Fields\FetchFieldTypes;
 use Solspace\Freeform\Events\Freeform\RegisterCpSubnavItemsEvent;
 use Solspace\Freeform\Events\Freeform\RegisterSettingsNavigationEvent;
@@ -27,6 +28,7 @@ use Solspace\Freeform\Events\Integrations\FetchMailingListTypesEvent;
 use Solspace\Freeform\Freeform;
 use Solspace\Freeform\Services\CrmService;
 use Solspace\Freeform\Services\FieldsService;
+use Solspace\Freeform\Services\FormsService;
 use Solspace\Freeform\Services\MailingListsService;
 use Solspace\Freeform\Services\SettingsService;
 use Solspace\FreeformPro\Controllers\ExportProfilesController;
@@ -35,6 +37,7 @@ use Solspace\FreeformPro\Controllers\SettingsController;
 use Solspace\FreeformPro\Models\Settings;
 use Solspace\FreeformPro\Services\ExportProfilesService;
 use Solspace\FreeformPro\Services\RecaptchaService;
+use Solspace\FreeformPro\Services\RulesService;
 use Solspace\FreeformPro\Services\WidgetsService;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
@@ -46,6 +49,7 @@ use yii\base\Event;
  * @property WidgetsService        $widgets
  * @property ExportProfilesService $exportProfiles
  * @property RecaptchaService      $recaptcha
+ * @property RulesService          $rules
  */
 class FreeformPro extends Plugin
 {
@@ -175,6 +179,7 @@ class FreeformPro extends Plugin
                 'widgets'        => WidgetsService::class,
                 'exportProfiles' => ExportProfilesService::class,
                 'recaptcha'      => RecaptchaService::class,
+                'rules'          => RulesService::class,
             ]
         );
     }
@@ -358,6 +363,30 @@ class FreeformPro extends Plugin
             function (RegisterSettingsNavigationEvent $event) {
                 $event->addNavigationItem('recaptcha', FreeformPro::t('reCAPTCHA'), 'spam');
             }
+        );
+
+        Event::on(
+            FormsService::class,
+            FormsService::EVENT_RENDER_CLOSING_TAG,
+            [$this->rules, 'addJavascriptToForm']
+        );
+
+        Event::on(
+            FormsService::class,
+            FormsService::EVENT_ATTACH_FORM_ATTRIBUTES,
+            [$this->rules, 'addAttributesToFormTag']
+        );
+
+        Event::on(
+            FormsService::class,
+            FormsService::EVENT_PAGE_JUMP,
+            [$this->rules, 'handleFormPageJump']
+        );
+
+        Event::on(
+            SubmissionsController::class,
+            SubmissionsController::EVENT_REGISTER_EDIT_ASSETS,
+            [$this->rules, 'registerRulesJsAsAssets']
         );
     }
 

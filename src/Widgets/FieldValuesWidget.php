@@ -12,10 +12,11 @@
 namespace Solspace\FreeformPro\Widgets;
 
 use craft\db\Query;
+use Solspace\Commons\Helpers\ColorHelper;
 use Solspace\Freeform\Elements\Submission;
 use Solspace\Freeform\Freeform;
 use Solspace\Freeform\Library\Composer\Components\AbstractField;
-use Solspace\FreeformPro\Bundles\ChartJsBundle;
+use Solspace\Freeform\Resources\Bundles\ChartJsBundle;
 use Solspace\FreeformPro\FreeformPro;
 use Solspace\FreeformPro\Services\WidgetsService;
 use yii\db\Exception;
@@ -216,7 +217,7 @@ class FieldValuesWidget extends AbstractWidget
             }
 
             $count = (int) $item['count'];
-            $color = $columnValue ? $widgets->getColor($columnValue) : [5, 148, 209];
+            $color = $columnValue ? ColorHelper::getRGBColor($columnValue) : [5, 148, 209];
 
             $labels[]                = $columnValue ?: 'Empty';
             $data[]                  = $count;

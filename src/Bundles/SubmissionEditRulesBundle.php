@@ -12,13 +12,16 @@ use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 use Solspace\Commons\Resources\CpAssetBundle;
 
-class ChartJsBundle extends AbstractFreeformProAssetBundle
+class SubmissionEditRulesBundle extends AbstractFreeformProAssetBundle
 {
     /**
      * @inheritDoc
      */
     public function getScripts(): array
     {
-        return ['js/chart.bundle.min.js'];
+        return [
+            'js/src/submission-edit.js',
+            'js/src/form/rules.js',
+        ];
     }
 }

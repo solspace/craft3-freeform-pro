@@ -88,9 +88,7 @@ class CampaignMonitor extends AbstractMailingListIntegration
             return isset($json->ApiKey) && !empty($json->ApiKey);
         } catch (RequestException $exception) {
             $responseBody = (string) $exception->getResponse()->getBody();
-
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $exception->getMessage(), self::LOG_CATEGORY);
+            $this->getLogger()->error($responseBody, ['exception' => $exception->getMessage()]);
 
             throw new IntegrationException($exception->getMessage(), $exception->getCode(), $exception->getPrevious());
         }
@@ -152,9 +150,7 @@ class CampaignMonitor extends AbstractMailingListIntegration
             }
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
-
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+            $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
 
             throw new IntegrationException(
                 $this->getTranslator()->translate('Could not connect to API endpoint')
@@ -217,9 +213,7 @@ class CampaignMonitor extends AbstractMailingListIntegration
             );
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
-
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+            $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
 
             throw new IntegrationException(
                 $this->getTranslator()->translate('Could not connect to API endpoint')
@@ -278,9 +272,7 @@ class CampaignMonitor extends AbstractMailingListIntegration
             );
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
-
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+            $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
 
             throw new IntegrationException(
                 $this->getTranslator()->translate('Could not connect to API endpoint')

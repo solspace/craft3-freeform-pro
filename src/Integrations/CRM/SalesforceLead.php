@@ -165,9 +165,7 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
             $this->onAfterFetchAccessToken($json);
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
-
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+            $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
 
             throw $e;
         }
@@ -229,8 +227,7 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
 
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+            $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
 
             if ($e->getResponse()->getStatusCode() === 400) {
                 $errors = json_decode((string) $e->getResponse()->getBody());
@@ -296,8 +293,7 @@ class SalesforceLead extends AbstractCRMIntegration implements TokenRefreshInter
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
 
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+            $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
 
             // If we get an unauthorized error - we throw the exception to trigger token refresh
             if ($e->getCode() === 401) {

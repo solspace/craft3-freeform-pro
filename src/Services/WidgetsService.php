@@ -13,7 +13,9 @@ namespace Solspace\FreeformPro\Services;
 
 use Carbon\Carbon;
 use craft\base\Component;
+use craft\db\Query;
 use craft\helpers\DateTimeHelper;
+use Solspace\Freeform\Elements\Submission;
 use Solspace\Freeform\Freeform;
 use Solspace\Freeform\Library\Exceptions\FreeformException;
 
@@ -70,6 +72,7 @@ class WidgetsService extends Component
         }
 
         $rangeEnd = new Carbon(null, 'UTC');
+        $rangeEnd->setTime(0, 0);
 
         switch ($rangeType) {
             case self::RANGE_LAST_24_HOURS:
@@ -98,28 +101,6 @@ class WidgetsService extends Component
                 break;
         }
 
-        return [$rangeStart->toDateTimeString(), $rangeEnd->toDateTimeString()];
-    }
-
-    /**
-     * Generates an RGB color based on $id int
-     *
-     * @param int|string $id
-     *
-     * @return array
-     */
-    public function getColor($id): array
-    {
-        if (strpos($id, '#') === 0) {
-            $hash = substr($id, 1, 6);
-        } else {
-            $hash = md5($id); // modify 'color' to get a different palette
-        }
-
-        return [
-            hexdec(substr($hash, 0, 2)), // r
-            hexdec(substr($hash, 2, 2)), // g
-            hexdec(substr($hash, 4, 2)), // b
-        ];
+        return [$rangeStart, $rangeEnd];
     }
 }

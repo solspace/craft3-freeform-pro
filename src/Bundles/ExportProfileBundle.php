@@ -19,6 +19,6 @@ class ExportProfileBundle extends AbstractFreeformProAssetBundle
      */
     public function getScripts(): array
     {
-        return ['js/export-profile.js'];
+        return ['js/src/export-profile.js'];
     }
 }

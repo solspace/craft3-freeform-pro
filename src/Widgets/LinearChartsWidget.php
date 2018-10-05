@@ -11,10 +11,9 @@
 
 namespace Solspace\FreeformPro\Widgets;
 
-use craft\db\Query;
-use Solspace\Freeform\Elements\Submission;
 use Solspace\Freeform\Freeform;
-use Solspace\FreeformPro\Bundles\ChartJsBundle;
+use Solspace\Freeform\Library\Charts\LinearChartData;
+use Solspace\Freeform\Resources\Bundles\ChartJsBundle;
 use Solspace\FreeformPro\FreeformPro;
 use Solspace\FreeformPro\Services\WidgetsService;
 
@@ -163,132 +162,27 @@ class LinearChartsWidget extends AbstractWidget
     }
 
     /**
-     * @return array
+     * @return LinearChartData
+     * @throws \Solspace\Freeform\Library\Exceptions\FreeformException
      */
-    private function getChartData(): array
+    private function getChartData(): LinearChartData
     {
         list($rangeStart, $rangeEnd) = $this->getWidgetsService()->getRange($this->dateRange);
-        $diff = date_diff(new \DateTime($rangeStart), new \DateTime($rangeEnd));
 
-        $labels      = $dates = [];
-        $dateContext = new \DateTime($rangeStart);
-        for ($i = 0; $i <= $diff->days; $i++) {
-            $labels[] = $dateContext->format('M j');
-            $dates[]  = $dateContext->format('Y-m-d');
-            $dateContext->add(new \DateInterval('P1D'));
+        $formIds = $this->formIds;
+        if ($formIds === '*') {
+            $formIds = array_keys($this->getFormService()->getAllForms());
         }
 
-        $forms = $this->getFormService()->getAllForms();
+        $chartData = $this->getChartsService()->getLinearSubmissionChartData(
+            $rangeStart,
+            $rangeEnd,
+            $formIds,
+            (bool) $this->aggregate
+        );
 
-        $aggregateData = $this->aggregate;
-        $formIdList    = $this->formIds;
-        if ($formIdList === '*') {
-            $formIdList = array_keys($forms);
-        }
+        $chartData->setChartType($this->chartType);
 
-
-        $formData = [];
-        foreach ($formIdList as $formId) {
-            if (null !== $formId && !isset($forms[$formId])) {
-                continue;
-            }
-
-            $query = (new Query())
-                ->select(
-                    [
-                        'DATE(dateCreated) as dt',
-                        'COUNT(id) as count',
-                    ]
-                )
-                ->from(Submission::TABLE)
-                ->groupBy(['dt']);
-
-            $query->where(['between', 'dateCreated', $rangeStart, $rangeEnd]);
-
-            $form = null;
-            if ($aggregateData) {
-                $query->andWhere(['in', 'form', $formIdList]);
-            } else {
-                $form = $forms[$formId];
-                $query->andWhere(['formId' => $formId]);
-            }
-
-            $result = $query->all();
-
-            $data = [];
-            foreach ($dates as $date) {
-                $data[$date] = 0;
-            }
-
-            foreach ($result as $item) {
-                $data[$item['dt']] = (int) $item['count'];
-            }
-
-            if ($form) {
-                $color = $this->getWidgetsService()->getColor($form->color);
-            } else {
-                $color = [5, 148, 209];
-            }
-
-            $formData[] = [
-                'label'                => $form ? $form->name : 'Submissions',
-                'borderColor'          => sprintf('rgba(%s,1)', implode(',', $color)),
-                'backgroundColor'      => sprintf('rgba(%s,1)', implode(',', $color)),
-                'pointRadius'          => 3,
-                'pointBackgroundColor' => sprintf('rgba(%s,1)', implode(',', $color)),
-                'lineTension'          => 0.2,
-                'fill'                 => false,
-                'data'                 => array_values($data),
-            ];
-
-            if ($aggregateData) {
-                break;
-            }
-        }
-
-        $chartType = $this->chartType;
-
-        return [
-            'type'    => $chartType,
-            'data'    => [
-                'labels'   => $labels,
-                'datasets' => $formData,
-            ],
-            'options' => [
-                'tooltips'   => [
-                    'backgroundColor' => 'rgba(250, 250, 250, 0.9)',
-                    'titleFontColor'  => '#000',
-                    'bodyFontColor'   => '#000',
-                    'cornerRadius'    => 4,
-                    'xPadding'        => 10,
-                    'yPadding'        => 7,
-                    'displayColors'   => false,
-                ],
-                'responsive' => true,
-                'legend'     => [
-                    'display' => !$this->aggregate,
-                    'labels'  => [
-                        'padding'       => 20,
-                        'usePointStyle' => true,
-                    ],
-                ],
-                'scales'     => [
-                    'yAxes' => [
-                        [
-                            'stacked'     => $chartType === 'bar' ? true : null,
-                            'beginAtZero' => true,
-                        ],
-                    ],
-                    'xAxes' => [
-                        [
-                            'stacked'   => $chartType === 'bar' ? true : null,
-                            'gridLines' => [
-                                'display' => false,
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
+        return $chartData;
     }
 }

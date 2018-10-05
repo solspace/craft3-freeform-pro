@@ -87,17 +87,16 @@ class SharpSpring extends AbstractCRMIntegration
 
                 $data = json_decode((string) $response->getBody(), true);
 
-                $this->getLogger()->log(LoggerInterface::LEVEL_INFO, (string) $response->getBody(), self::LOG_CATEGORY);
+                $this->getLogger()->info((string) $response->getBody());
 
                 return (isset($data['result']['error']) && (count($data['result']['error']) === 0));
             } catch (RequestException $e) {
                 if ($e->getResponse()) {
                     $json = json_decode((string) $e->getResponse()->getBody());
-                    $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $json, self::LOG_CATEGORY);
-                    $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+                    $this->getLogger()->error($json, ['exception' => $e->getMessage()]);
                 }
             } catch (\Exception $e) {
-                $this->getLogger()->log(LoggerInterface::LEVEL_WARNING, $e->getMessage(), self::LOG_CATEGORY);
+                $this->getLogger()->error($e->getMessage());
             }
         }
 

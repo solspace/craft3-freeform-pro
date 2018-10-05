@@ -104,12 +104,11 @@ class HubSpot extends AbstractCRMIntegration
                     } else {
                         $responseBody = (string) $e->getResponse()->getBody();
 
-                        $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-                        $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+                        $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
                     }
                 }
             } catch (\Exception $e) {
-                $this->getLogger()->log(LoggerInterface::LEVEL_WARNING, $e->getMessage(), self::LOG_CATEGORY);
+                $this->getLogger()->error($e->getMessage());
             }
         }
 
@@ -131,10 +130,9 @@ class HubSpot extends AbstractCRMIntegration
             } catch (RequestException $e) {
                 $responseBody = (string) $e->getResponse()->getBody();
 
-                $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-                $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+                $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
             } catch (\Exception $e) {
-                $this->getLogger()->log(LoggerInterface::LEVEL_WARNING, $e->getMessage(), self::LOG_CATEGORY);
+                $this->getLogger()->error($e->getMessage());
             }
         }
 

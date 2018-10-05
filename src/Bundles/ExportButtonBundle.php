@@ -9,6 +9,6 @@ class ExportButtonBundle extends AbstractFreeformProAssetBundle
      */
     public function getScripts(): array
     {
-        return ['js/export-button.js'];
+        return ['js/src/export-button.js'];
     }
 }

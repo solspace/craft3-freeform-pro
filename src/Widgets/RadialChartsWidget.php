@@ -11,10 +11,9 @@
 
 namespace Solspace\FreeformPro\Widgets;
 
-use craft\db\Query;
-use Solspace\Freeform\Elements\Submission;
 use Solspace\Freeform\Freeform;
-use Solspace\FreeformPro\Bundles\ChartJsBundle;
+use Solspace\Freeform\Library\Charts\RadialChartData;
+use Solspace\Freeform\Resources\Bundles\ChartJsBundle;
 use Solspace\FreeformPro\FreeformPro;
 use Solspace\FreeformPro\Services\WidgetsService;
 
@@ -123,90 +122,29 @@ class RadialChartsWidget extends AbstractWidget
     }
 
     /**
-     * @return array
+     * @return RadialChartData
+     * @throws \Solspace\Freeform\Library\Exceptions\FreeformException
      */
-    private function getChartData(): array
+    private function getChartData(): RadialChartData
     {
         list($rangeStart, $rangeEnd) = $this->getWidgetsService()->getRange($this->dateRange);
 
         $forms = $this->getFormService()->getAllForms();
 
-        $formIdList = $this->formIds;
-        if ($formIdList === '*') {
-            $formIdList = array_keys($forms);
-        }
-
-
-        $result = (new Query())
-            ->select(
-                [
-                    'formId',
-                    'COUNT(id) as count',
-                ]
-            )
-            ->from(Submission::TABLE)
-            ->where(['between', 'dateCreated', $rangeStart, $rangeEnd])
-            ->andWhere(['IN', 'formId', $formIdList])
-            ->groupBy(['formId'])
-            ->all();
-
-        $labels = $data = $backgroundColors = $hoverBackgroundColors = $formsWithResults = [];
-        foreach ($result as $item) {
-            $formId             = $item['formId'];
-            $formsWithResults[] = $formId;
-
-            $count = (int) $item['count'];
-            $color = $this->getWidgetsService()->getColor($forms[$formId]->color);
-
-            $labels[]                = $forms[$formId]->name;
-            $data[]                  = $count;
-            $backgroundColors[]      = sprintf('rgba(%s,0.8)', implode(',', $color));
-            $hoverBackgroundColors[] = sprintf('rgba(%s,1)', implode(',', $color));
-        }
-
-        foreach ($formIdList as $formId) {
-            if (\in_array($formId, $formsWithResults, false)) {
-                continue;
+        $formList = [];
+        if ($this->formIds === '*') {
+            $formList = $forms;
+        } else {
+            foreach ($forms as $form) {
+                if (\in_array($form->id, $this->formIds, false)) {
+                    $formList[$form->id] = $form;
+                }
             }
-
-            $color = $this->getWidgetsService()->getColor($forms[$formId]->color);
-
-            $labels[]                = $forms[$formId]->name;
-            $data[]                  = 0;
-            $backgroundColors[]      = sprintf('rgba(%s,0.8)', implode(',', $color));
-            $hoverBackgroundColors[] = sprintf('rgba(%s,1)', implode(',', $color));
         }
 
-        return [
-            'type'    => $this->chartType,
-            'data'    => [
-                'labels'   => $labels,
-                'datasets' => [
-                    [
-                        'data'                 => $data,
-                        'backgroundColor'      => $backgroundColors,
-                        'hoverBackgroundColor' => $hoverBackgroundColors,
-                    ],
-                ],
-            ],
-            'options' => [
-                'tooltips'   => [
-                    'backgroundColor' => 'rgba(250, 250, 250, 0.9)',
-                    'titleFontColor'  => '#000',
-                    'bodyFontColor'   => '#000',
-                    'cornerRadius'    => 3,
-                    'xPadding'        => 10,
-                    'yPadding'        => 7,
-                    'displayColors'   => false,
-                ],
-                'responsive' => true,
-                'legend'     => [
-                    'labels' => [
-                        'padding'       => 15,
-                        'usePointStyle' => true,
-                    ],
-                ],
-            ],
-        ];
+        $chartData = $this->getChartsService()->getRadialFormSubmissionData($rangeStart, $rangeEnd, $formList);
+        $chartData->setChartType($this->chartType);
+
+        return $chartData;
     }
 }

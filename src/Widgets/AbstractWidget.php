@@ -10,6 +10,7 @@ namespace Solspace\FreeformPro\Widgets;
 
 use craft\base\Widget;
 use Solspace\Freeform\Freeform;
+use Solspace\Freeform\Services\ChartsService;
 use Solspace\Freeform\Services\FieldsService;
 use Solspace\Freeform\Services\FormsService;
 use Solspace\FreeformPro\FreeformPro;
@@ -47,5 +48,13 @@ abstract class AbstractWidget extends Widget
     protected function getWidgetsService(): WidgetsService
     {
         return FreeformPro::getInstance()->widgets;
+    }
+
+    /**
+     * @return ChartsService
+     */
+    protected function getChartsService(): ChartsService
+    {
+        return Freeform::getInstance()->charts;
     }
 }

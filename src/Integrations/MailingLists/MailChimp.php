@@ -89,11 +89,7 @@ class MailChimp extends AbstractMailingListIntegration
 
             return isset($json->account_id) && !empty($json->account_id);
         } catch (RequestException $e) {
-            $this->getLogger()->log(
-                LoggerInterface::LEVEL_ERROR,
-                (string) $e->getRequest()->getBody(),
-                self::LOG_CATEGORY
-            );
+            $this->getLogger()->error((string) $e->getRequest()->getBody());
 
             throw new IntegrationException($e->getMessage(), $e->getCode(), $e->getPrevious());
         }
@@ -142,9 +138,7 @@ class MailChimp extends AbstractMailingListIntegration
             );
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
-
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+            $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
 
             throw new IntegrationException(
                 $this->getTranslator()->translate('Could not connect to API endpoint')
@@ -153,7 +147,7 @@ class MailChimp extends AbstractMailingListIntegration
 
         $statusCode = $response->getStatusCode();
         if ($statusCode !== 200) {
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, 'Could not add emails to lists', self::LOG_CATEGORY);
+            $this->getLogger()->error('Could not add emails to lists', ['response' => (string) $response->getBody()]);
 
             throw new IntegrationException(
                 $this->getTranslator()->translate('Could not add emails to lists')
@@ -162,11 +156,7 @@ class MailChimp extends AbstractMailingListIntegration
 
         $jsonResponse = json_decode((string) $response->getBody());
         if (isset($jsonResponse->error_count) && $jsonResponse->error_count > 0) {
-            $this->getLogger()->log(
-                LoggerInterface::LEVEL_ERROR,
-                json_encode($jsonResponse->errors),
-                self::LOG_CATEGORY
-            );
+            $this->getLogger()->error(json_encode($jsonResponse->errors), ['response' => $jsonResponse]);
 
             throw new IntegrationException(
                 $this->getTranslator()->translate('Could not add emails to lists')
@@ -241,9 +231,7 @@ class MailChimp extends AbstractMailingListIntegration
             );
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
-
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+            $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
 
             throw new IntegrationException(
                 $this->getTranslator()->translate('Could not connect to API endpoint')
@@ -304,9 +292,7 @@ class MailChimp extends AbstractMailingListIntegration
             );
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
-
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $responseBody, self::LOG_CATEGORY);
-            $this->getLogger()->log(LoggerInterface::LEVEL_ERROR, $e->getMessage(), self::LOG_CATEGORY);
+            $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
 
             throw new IntegrationException(
                 $this->getTranslator()->translate('Could not connect to API endpoint')
