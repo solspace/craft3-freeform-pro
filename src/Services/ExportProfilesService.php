@@ -2,6 +2,7 @@
 
 namespace Solspace\FreeformPro\Services;
 
+use Carbon\Carbon;
 use craft\db\Query;
 use Solspace\Freeform\Elements\Submission;
 use Solspace\Freeform\Freeform;
@@ -386,6 +387,13 @@ class ExportProfilesService extends Component
          */
         foreach ($data as $index => $item) {
             foreach ($item as $fieldId => $value) {
+                if ($fieldId === 'dateCreated') {
+                    $date = new Carbon($value, 'UTC');
+                    $date->setTimezone(date_default_timezone_get());
+
+                    $data[$index][$fieldId] = $date->toDateTimeString();
+                }
+
                 if (!preg_match('/^' . Submission::FIELD_COLUMN_PREFIX . '(\d+)$/', $fieldId, $matches)) {
                     continue;
                 }

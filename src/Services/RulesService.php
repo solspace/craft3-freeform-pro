@@ -26,7 +26,7 @@ class RulesService extends Component
             static $scriptLoaded;
 
             if (null === $scriptLoaded) {
-                $scriptJs = file_get_contents(__DIR__ . '/../Resources/js/src/form/rules.js');
+                $scriptJs = file_get_contents(\Yii::getAlias('@freeform-pro') . '/Resources/js/src/form/rules.js');
 
                 if (Freeform::getInstance()->settings->isFooterScripts()) {
                     \Craft::$app->view->registerJs($scriptJs, View::POS_END);

@@ -12,6 +12,7 @@
 namespace Solspace\FreeformPro\Integrations\MailingLists;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\RequestException;
 use Solspace\Freeform\Library\Exceptions\Integrations\IntegrationException;
 use Solspace\Freeform\Library\Integrations\DataObjects\FieldObject;
@@ -20,14 +21,15 @@ use Solspace\Freeform\Library\Integrations\MailingLists\AbstractMailingListInteg
 use Solspace\Freeform\Library\Integrations\MailingLists\DataObjects\ListObject;
 use Solspace\Freeform\Library\Integrations\SettingBlueprint;
 
-class MailChimp extends AbstractMailingListIntegration
+class Dotmailer extends AbstractMailingListIntegration
 {
-    const SETTING_API_KEY       = 'api_key';
+    const SETTING_USER_EMAIL    = 'user_email';
+    const SETTING_USER_PASS     = 'user_pass';
     const SETTING_DOUBLE_OPT_IN = 'double_opt_in';
-    const SETTING_DATA_CENTER   = 'data_center';
+    const SETTING_ENDPOINT      = 'endpoint';
 
-    const TITLE        = 'MailChimp';
-    const LOG_CATEGORY = 'MailChimp';
+    const TITLE        = 'Dotmailer';
+    const LOG_CATEGORY = 'Dotmailer';
 
     /**
      * Returns a list of additional settings for this integration
@@ -40,9 +42,16 @@ class MailChimp extends AbstractMailingListIntegration
         return [
             new SettingBlueprint(
                 SettingBlueprint::TYPE_TEXT,
-                self::SETTING_API_KEY,
-                'API Key',
-                'Enter your MailChimp API key here.',
+                self::SETTING_USER_EMAIL,
+                'API User Email',
+                'Enter your Dotmailer API user email.',
+                true
+            ),
+            new SettingBlueprint(
+                SettingBlueprint::TYPE_PASSWORD,
+                self::SETTING_USER_PASS,
+                'Password',
+                'Enter your Dotmailer API user password',
                 true
             ),
             new SettingBlueprint(
@@ -54,9 +63,9 @@ class MailChimp extends AbstractMailingListIntegration
             ),
             new SettingBlueprint(
                 SettingBlueprint::TYPE_INTERNAL,
-                self::SETTING_DATA_CENTER,
-                'Data Center',
-                'This will be fetched automatically upon authorizing your credentials.',
+                self::SETTING_ENDPOINT,
+                'Endpoint',
+                '',
                 false
             ),
         ];
@@ -74,19 +83,13 @@ class MailChimp extends AbstractMailingListIntegration
 
         try {
             $response = $client->get(
-                $this->getEndpoint('/'),
-                [
-                    'auth' => ['mailchimp', $this->getAccessToken()],
-                ]
+                $this->getEndpoint('/account-info'),
+                ['auth' => [$this->getUsername(), $this->getPassword()]]
             );
 
             $json = json_decode((string) $response->getBody());
 
-            if (isset($json->error) && !empty($json->error)) {
-                throw new IntegrationException($json->error);
-            }
-
-            return isset($json->account_id) && !empty($json->account_id);
+            return isset($json->id) && !empty($json->id);
         } catch (RequestException $e) {
             $this->getLogger()->error((string) $e->getRequest()->getBody());
 
@@ -107,34 +110,33 @@ class MailChimp extends AbstractMailingListIntegration
     public function pushEmails(ListObject $mailingList, array $emails, array $mappedValues): bool
     {
         $client   = new Client();
-        $endpoint = $this->getEndpoint("lists/{$mailingList->getId()}");
-
-        $isDoubleOptIn = $this->getSetting(self::SETTING_DOUBLE_OPT_IN);
+        $endpoint = $this->getEndpoint('/address-books/' . $mailingList->getId() . '/contacts');
 
         try {
-            $members = [];
             foreach ($emails as $email) {
-                $memberData = [
-                    'email_address' => $email,
-                    'status'        => $isDoubleOptIn ? 'pending' : 'subscribed',
+                $data = [
+                    'email'     => $email,
+                    'optInType' => $this->getSetting(self::SETTING_DOUBLE_OPT_IN) ? 'verifiedDouble' : 'single',
                 ];
 
-                if (!empty($mappedValues)) {
-                    $memberData['merge_fields'] = $mappedValues;
+                if ($mappedValues) {
+                    $data['dataFields'] = [];
+                    foreach ($mappedValues as $key => $value) {
+                        $data['dataFields'][] = [
+                            'key'   => $key,
+                            'value' => $value,
+                        ];
+                    }
                 }
 
-                $members[] = $memberData;
+                $client->post(
+                    $endpoint,
+                    [
+                        'auth' => [$this->getUsername(), $this->getPassword()],
+                        'json' => $data,
+                    ]
+                );
             }
-
-            $data = ['members' => $members, 'update_existing' => true];
-
-            $response = $client->post(
-                $endpoint,
-                [
-                    'auth' => ['mailchimp', $this->getAccessToken()],
-                    'json' => $data,
-                ]
-            );
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
             $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
@@ -144,25 +146,7 @@ class MailChimp extends AbstractMailingListIntegration
             );
         }
 
-        $statusCode = $response->getStatusCode();
-        if ($statusCode !== 200) {
-            $this->getLogger()->error('Could not add emails to lists', ['response' => (string) $response->getBody()]);
-
-            throw new IntegrationException(
-                $this->getTranslator()->translate('Could not add emails to lists')
-            );
-        }
-
-        $jsonResponse = json_decode((string) $response->getBody());
-        if (isset($jsonResponse->error_count) && $jsonResponse->error_count > 0) {
-            $this->getLogger()->error(json_encode($jsonResponse->errors), ['response' => $jsonResponse]);
-
-            throw new IntegrationException(
-                $this->getTranslator()->translate('Could not add emails to lists')
-            );
-        }
-
-        return $statusCode === 200;
+        return true;
     }
 
     /**
@@ -181,7 +165,7 @@ class MailChimp extends AbstractMailingListIntegration
      */
     public function fetchAccessToken(): string
     {
-        return $this->getSetting(self::SETTING_API_KEY);
+        return $this->getSetting(self::SETTING_USER_EMAIL);
     }
 
     /**
@@ -193,15 +177,27 @@ class MailChimp extends AbstractMailingListIntegration
      */
     public function onBeforeSave(IntegrationStorageInterface $model)
     {
-        if (preg_match('/([a-zA-Z]+[\d]+)$/', $this->getSetting(self::SETTING_API_KEY), $matches)) {
-            $dataCenter = $matches[1];
-            $this->setSetting(self::SETTING_DATA_CENTER, $dataCenter);
-        } else {
-            throw new IntegrationException('Could not detect data center for MailChimp');
+        $client   = new Client();
+        $endpoint = 'https://api.dotmailer.com/v2/account-info';
+
+        try {
+            $response = $client->get($endpoint, ['auth' => [$this->getUsername(), $this->getPassword()]]);
+            $json = json_decode((string) $response->getBody());
+
+            if (isset($json->properties)) {
+                foreach ($json->properties as $property) {
+                    if ($property->name === 'ApiEndpoint') {
+                        $this->setSetting(self::SETTING_ENDPOINT, $property->value);
+                        $model->updateSettings($this->getSettings());
+
+                        return;
+                    }
+                }
+            }
+        } catch (BadResponseException $e) {
         }
 
-        $model->updateAccessToken($this->getSetting(self::SETTING_API_KEY));
-        $model->updateSettings($this->getSettings());
+        throw new IntegrationException('Could not get an API endpoint');
     }
 
     /**
@@ -215,17 +211,14 @@ class MailChimp extends AbstractMailingListIntegration
     protected function fetchLists(): array
     {
         $client   = new Client();
-        $endpoint = $this->getEndpoint('/lists');
+        $endpoint = $this->getEndpoint('/address-books');
 
         try {
             $response = $client->get(
                 $endpoint,
                 [
-                    'auth'  => ['mailchimp', $this->getAccessToken()],
-                    'query' => [
-                        'fields' => 'lists.id,lists.name,lists.stats.member_count',
-                        'count'  => 999,
-                    ],
+                    'auth'  => [$this->getUsername(), $this->getPassword()],
+                    'query' => ['select' => 1000],
                 ]
             );
         } catch (RequestException $e) {
@@ -249,17 +242,15 @@ class MailChimp extends AbstractMailingListIntegration
         $json = json_decode((string) $response->getBody());
 
         $lists = [];
-        if (isset($json->lists)) {
-            foreach ($json->lists as $list) {
-                if (isset($list->id, $list->name)) {
-                    $lists[] = new ListObject(
-                        $this,
-                        $list->id,
-                        $list->name,
-                        $this->fetchFields($list->id),
-                        $list->stats->member_count
-                    );
-                }
+        foreach ($json as $list) {
+            if (isset($list->id, $list->name)) {
+                $lists[] = new ListObject(
+                    $this,
+                    $list->id,
+                    $list->name,
+                    $this->fetchFields($list->id),
+                    $list->contacts
+                );
             }
         }
 
@@ -277,18 +268,10 @@ class MailChimp extends AbstractMailingListIntegration
     protected function fetchFields($listId): array
     {
         $client   = new Client();
-        $endpoint = $this->getEndpoint("/lists/$listId/merge-fields");
+        $endpoint = $this->getEndpoint('/data-fields');
 
         try {
-            $response = $client->get(
-                $endpoint,
-                [
-                    'auth'  => ['mailchimp', $this->getAccessToken()],
-                    'query' => [
-                        'count' => 999,
-                    ],
-                ]
-            );
+            $response = $client->get($endpoint, ['auth' => [$this->getUsername(), $this->getPassword()]]);
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
             $this->getLogger()->error($responseBody, ['exception' => $e->getMessage()]);
@@ -300,22 +283,20 @@ class MailChimp extends AbstractMailingListIntegration
 
         $json = json_decode((string) $response->getBody());
 
-        if (isset($json->merge_fields)) {
+        if ($json) {
             $fieldList = [];
-            foreach ($json->merge_fields as $field) {
+            foreach ($json as $field) {
                 switch ($field->type) {
-                    case 'text':
-                    case 'website':
-                    case 'url':
-                    case 'dropdown':
-                    case 'radio':
-                    case 'date':
-                    case 'zip':
+                    case 'String':
+                    case 'Date':
                         $type = FieldObject::TYPE_STRING;
                         break;
 
-                    case 'number':
-                    case 'phone':
+                    case 'Boolean':
+                        $type = FieldObject::TYPE_BOOLEAN;
+                        break;
+
+                    case 'Numeric':
                         $type = FieldObject::TYPE_NUMERIC;
                         break;
 
@@ -329,10 +310,10 @@ class MailChimp extends AbstractMailingListIntegration
                 }
 
                 $fieldList[] = new FieldObject(
-                    $field->tag,
+                    $field->name,
                     $field->name,
                     $type,
-                    $field->required
+                    false
                 );
             }
 
@@ -346,18 +327,27 @@ class MailChimp extends AbstractMailingListIntegration
      * Returns the API root url without endpoints specified
      *
      * @return string
-     * @throws IntegrationException
      */
     protected function getApiRootUrl(): string
     {
-        $dataCenter = $this->getSetting(self::SETTING_DATA_CENTER);
+        return rtrim($this->getSetting(self::SETTING_ENDPOINT), '/') . '/v2/';
+    }
 
-        if (empty($dataCenter)) {
-            throw new IntegrationException(
-                $this->getTranslator()->translate('Could not detect data center for MailChimp')
-            );
-        }
+    /**
+     * @return string
+     * @throws IntegrationException
+     */
+    private function getUsername(): string
+    {
+        return $this->getSetting(self::SETTING_USER_EMAIL) ?? '';
+    }
 
-        return "https://$dataCenter.api.mailchimp.com/3.0/";
+    /**
+     * @return string
+     * @throws IntegrationException
+     */
+    private function getPassword(): string
+    {
+        return $this->getSetting(self::SETTING_USER_PASS) ?? '';
     }
 }

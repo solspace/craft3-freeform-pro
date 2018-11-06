@@ -82,6 +82,7 @@ class FreeformPro extends Plugin
     public function init()
     {
         parent::init();
+        \Yii::setAlias('@freeform-pro', __DIR__);
 
         $this->initControllers();
         $this->initServices();

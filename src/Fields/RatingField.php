@@ -111,7 +111,7 @@ class RatingField extends AbstractField implements SingleValueInterface
         $generatedClass = $this->getFormSha() . '-' . $this->getHandle() . '-rating-wrapper';
 
         $output .= '<div>';
-        $output .= '<span class="'. $generatedClass . ' form-rating-field-wrapper"';
+        $output .= '<span class="' . $generatedClass . ' form-rating-field-wrapper"';
         $output .= $this->getAttributeString('id', $this->getIdAttribute());
         $output .= '>';
 
@@ -145,17 +145,18 @@ class RatingField extends AbstractField implements SingleValueInterface
      */
     private function getStyles(): string
     {
-        $cssPath = __DIR__ . '/../../../freeform/src/Resources/css/form-frontend/fields/rating.css';
+        $freeform = \Yii::getAlias('@freeform');
+        $cssPath  = $freeform . '/Resources/css/form-frontend/fields/rating.css';
 
         $output = '<style>' . PHP_EOL;
         $output .= @file_get_contents($cssPath);
         $output .= '</style>';
 
         $replaceMap = [
-            'formhash' => $this->getFormSha(),
-            'fieldname' => $this->getHandle(),
-            'coloridle' => $this->getColorIdle(),
-            'colorhover' => $this->getColorHover(),
+            'formhash'      => $this->getFormSha(),
+            'fieldname'     => $this->getHandle(),
+            'coloridle'     => $this->getColorIdle(),
+            'colorhover'    => $this->getColorHover(),
             'colorselected' => $this->getColorSelected(),
         ];
 

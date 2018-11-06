@@ -231,6 +231,12 @@ class DatetimeField extends TextField implements InitialValueInterface
 
         $classString = $attributes->getClass() . ' ' . $this->getInputClassString();
 
+        $locale       = \Craft::$app->locale->id;
+        $freeformPath = \Yii::getAlias('@freeform');
+        if (!file_exists($freeformPath . "/Resources/js/lib/flatpickr/i10n/$locale.js")) {
+            $locale = '';
+        }
+
         return '<input '
             . $this->getAttributeString('name', $this->getHandle())
             . $this->getAttributeString('type', $this->getType())
@@ -240,7 +246,7 @@ class DatetimeField extends TextField implements InitialValueInterface
             . $this->getAttributeString('data-datepicker-enabletime', $hasTime ?: '')
             . $this->getAttributeString('data-datepicker-enabledate', $hasDate ?: '')
             . $this->getAttributeString('data-datepicker-clock_24h', $this->isClock24h() ?: '')
-            . $this->getAttributeString('data-datepicker-locale', \Craft::$app->locale->id)
+            . $this->getAttributeString('data-datepicker-locale', $locale)
             . $this->getAttributeString(
                 'placeholder',
                 $this->translate($attributes->getPlaceholder() ?: $this->getPlaceholder())
@@ -277,8 +283,8 @@ class DatetimeField extends TextField implements InitialValueInterface
         $format = $this->getFormat();
 
         $humanReadable = str_replace(
-            ['Y','y','n','m','j','d','H','h','G','g','i','A','a'],
-            ['YYYY','YY','M','MM','D','DD','HH','H','HH','H','MM','TT','TT'],
+            ['Y', 'y', 'n', 'm', 'j', 'd', 'H', 'h', 'G', 'g', 'i', 'A', 'a'],
+            ['YYYY', 'YY', 'M', 'MM', 'D', 'DD', 'HH', 'H', 'HH', 'H', 'MM', 'TT', 'TT'],
             $format
         );
 
