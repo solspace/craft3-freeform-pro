@@ -72,7 +72,6 @@ class WidgetsService extends Component
         }
 
         $rangeEnd = new Carbon(null, 'UTC');
-        $rangeEnd->setTime(0, 0);
 
         switch ($rangeType) {
             case self::RANGE_LAST_24_HOURS:
@@ -97,8 +96,11 @@ class WidgetsService extends Component
 
             default:
                 $rangeStart = new Carbon('-1 month', 'UTC');
-                $rangeStart->setTime(0, 0);
                 break;
+        }
+
+        if ($rangeType !== self::RANGE_LAST_24_HOURS) {
+            $rangeStart->setTime(0, 0);
         }
 
         return [$rangeStart, $rangeEnd];

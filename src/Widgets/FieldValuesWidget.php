@@ -177,16 +177,16 @@ class FieldValuesWidget extends AbstractWidget
             $result = (new Query())
                 ->select(
                     [
-                        "$columnName as val",
-                        'COUNT(id) as count',
+                        "[[submission.$columnName]] as val",
+                        'COUNT([[submission.id]]) as count',
                     ]
                 )
-                ->from(Submission::TABLE)
-                ->where(['between', 'dateCreated', $rangeStart, $rangeEnd])
-                ->andWhere(['formId' => $formId])
+                ->from(Submission::TABLE . ' submission')
+                ->where(['between', '[[submission.dateCreated]]', $rangeStart, $rangeEnd])
+                ->andWhere(['[[submission.formId]]' => $formId])
                 ->groupBy([$columnName])
                 ->all();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $result = [];
         }
 
