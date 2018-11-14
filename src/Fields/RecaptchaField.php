@@ -38,7 +38,10 @@ class RecaptchaField extends AbstractField implements NoStorageInterface, Single
 
         $output = '<script src="https://www.google.com/recaptcha/api.js"></script>';
         $output .= '<div class="g-recaptcha" data-sitekey="' . ($key ?: 'invalid') . '"></div>';
-        $output .= '<input type="hidden" name="' . $this->getHandle() . '" />';
+        $output .= '<input type="hidden" name="'
+            . $this->getHandle()
+            . $this->getInputAttributesString()
+            . '" />';
 
         return $output;
     }

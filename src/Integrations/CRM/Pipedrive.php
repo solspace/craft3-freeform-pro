@@ -266,9 +266,9 @@ class Pipedrive extends AbstractCRMIntegration
     public function fetchFields(): array
     {
         $endpoints = [
-            'prsn' => 'personFields',
-            'org'  => 'organizationFields',
-            'deal' => 'dealFields',
+            ['category' => 'prsn', 'label' => 'Person', 'endpoint' => 'personFields'],
+            ['category' => 'org', 'label' => 'Organization', 'endpoint' => 'organizationFields'],
+            ['category' => 'deal', 'label' => 'Deal', 'endpoint' => 'dealFields'],
         ];
 
         $allowedFields = [
@@ -289,7 +289,11 @@ class Pipedrive extends AbstractCRMIntegration
         ];
 
         $fieldList = [];
-        foreach ($endpoints as $category => $endpoint) {
+        foreach ($endpoints as $data) {
+            $category = $data['category'];
+            $label    = $data['label'];
+            $endpoint = $data['endpoint'];
+
             $response = $this->getResponse(
                 $this->getEndpoint('/v1/' . $endpoint),
                 ['query' => ['limit' => 999]]
@@ -338,7 +342,7 @@ class Pipedrive extends AbstractCRMIntegration
                 ) {
                     $fieldList[] = new FieldObject(
                         "{$category}___{$fieldInfo->key}",
-                        "($category) {$fieldInfo->name}",
+                    "{$fieldInfo->name} ($label)",
                         $type,
                         \in_array($fieldInfo->key, $requredFields, true)
                     );
@@ -347,7 +351,7 @@ class Pipedrive extends AbstractCRMIntegration
 
             $fieldList[] = new FieldObject(
                 "note___{$category}",
-                "({$category}) Note",
+                "$label (Note)",
                 FieldObject::TYPE_STRING,
                 false
             );

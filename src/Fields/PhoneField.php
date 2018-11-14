@@ -62,16 +62,14 @@ class PhoneField extends TextField
             return parent::getInputHtml();
         }
 
-        $this->addInputClass('form-phone-pattern-field');
-
         $pattern = $this->getPattern();
         $pattern = str_replace('x', '0', $pattern);
 
-        $output  = parent::getInputHtml();
-        $output  = str_replace('/>', '', $output);
-        $output  .= $this->getAttributeString('data-pattern', $pattern);
-        $output  .= ' />';
 
-        return $output;
+        $this
+            ->addInputAttribute('class', 'form-phone-pattern-field')
+            ->addInputAttribute('data-pattern', $pattern);
+
+        return parent::getInputHtml();
     }
 }

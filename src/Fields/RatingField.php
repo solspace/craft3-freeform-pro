@@ -120,6 +120,7 @@ class RatingField extends AbstractField implements SingleValueInterface
             $starId = $this->getHandle() . '_star_' . $i;
 
             $output .= '<input';
+            $output .= $this->getInputAttributesString();
             $output .= $this->getAttributeString('name', $this->getHandle());
             $output .= $this->getAttributeString('type', 'radio');
             $output .= $this->getAttributeString('id', $starId);
