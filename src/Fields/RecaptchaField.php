@@ -36,8 +36,7 @@ class RecaptchaField extends AbstractField implements NoStorageInterface, Single
     {
         $key = Freeform::getInstance()->getSettings()->recaptchaKey;
 
-        $output = '<script src="https://www.google.com/recaptcha/api.js"></script>';
-        $output .= '<div class="g-recaptcha" data-sitekey="' . ($key ?: 'invalid') . '"></div>';
+        $output = '<div class="g-recaptcha" data-sitekey="' . ($key ?: 'invalid') . '"></div>';
         $output .= '<input type="hidden" name="'
             . $this->getHandle()
             . $this->getInputAttributesString()
