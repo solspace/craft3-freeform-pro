@@ -2,7 +2,8 @@
 
 namespace Solspace\FreeformPro\Fields;
 
-use Craft\DateTime;
+use Carbon\Carbon;
+use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\DatetimeInterface;
 use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\InitialValueInterface;
 use Solspace\Freeform\Library\Composer\Components\Fields\TextField;
 use Solspace\Freeform\Library\Composer\Components\Fields\Traits\InitialValueTrait;
@@ -10,7 +11,7 @@ use Solspace\Freeform\Library\Composer\Components\Validation\Constraints\DateTim
 use Solspace\Freeform\Library\Composer\Components\Validation\Constraints\MaxDateConstraint;
 use Solspace\Freeform\Library\Composer\Components\Validation\Constraints\MinDateConstraint;
 
-class DatetimeField extends TextField implements InitialValueInterface
+class DatetimeField extends TextField implements InitialValueInterface, DatetimeInterface
 {
     const DATETIME_TYPE_BOTH = 'both';
     const DATETIME_TYPE_DATE = 'date';
@@ -247,6 +248,18 @@ class DatetimeField extends TextField implements InitialValueInterface
     }
 
     /**
+     * @return Carbon|null
+     */
+    public function getCarbon()
+    {
+       if ($this->getValue()) {
+           return Carbon::createFromFormat($this->getFormat(), $this->getValue());
+       }
+
+       return null;
+    }
+
+    /**
      * @inheritDoc
      */
     public function getConstraints(): array
@@ -320,8 +333,8 @@ class DatetimeField extends TextField implements InitialValueInterface
             . $this->getAttributeString('data-datepicker-enabledate', $hasDate ?: '')
             . $this->getAttributeString('data-datepicker-clock_24h', $this->isClock24h() ?: '')
             . $this->getAttributeString('data-datepicker-locale', $locale)
-            . $this->getAttributeString('data-datepicker-min-date', $this->getGeneratedMinDate())
-            . $this->getAttributeString('data-datepicker-max-date', $this->getGeneratedMaxDate())
+            . $this->getAttributeString('data-datepicker-min-date', $this->getGeneratedMinDate($this->getFormat()))
+            . $this->getAttributeString('data-datepicker-max-date', $this->getGeneratedMaxDate($this->getFormat()))
             . $this->getAttributeString(
                 'placeholder',
                 $this->translate($attributes->getPlaceholder() ?: $this->getPlaceholder())

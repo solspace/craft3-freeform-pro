@@ -3,14 +3,11 @@
 namespace Solspace\FreeformPro\Services;
 
 use craft\base\Component;
-use craft\web\View;
 use Solspace\Freeform\Events\Assets\RegisterEvent;
 use Solspace\Freeform\Events\Forms\AttachFormAttributesEvent;
 use Solspace\Freeform\Events\Forms\FormRenderEvent;
 use Solspace\Freeform\Events\Forms\PageJumpEvent;
-use Solspace\Freeform\Freeform;
 use Solspace\FreeformPro\Bundles\SubmissionEditRulesBundle;
-use yii\base\Event;
 
 class RulesService extends Component
 {
@@ -27,12 +24,7 @@ class RulesService extends Component
 
             if (null === $scriptLoaded) {
                 $scriptJs = file_get_contents(\Yii::getAlias('@freeform-pro') . '/Resources/js/src/form/rules.js');
-
-                if (Freeform::getInstance()->settings->isFooterScripts()) {
-                    \Craft::$app->view->registerJs($scriptJs, View::POS_END);
-                } else {
-                    $event->appendJsToOutput($scriptJs);
-                }
+                $event->appendJsToOutput($scriptJs);
             }
         }
     }
@@ -55,7 +47,7 @@ class RulesService extends Component
      */
     public function handleFormPageJump(PageJumpEvent $event)
     {
-        $form = $event->getForm();
+        $form           = $event->getForm();
         $ruleProperties = $form->getRuleProperties();
 
         if (null !== $ruleProperties && $ruleProperties->hasActiveGotoRules($form->getCurrentPage()->getIndex())) {

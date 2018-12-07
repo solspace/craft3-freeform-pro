@@ -117,7 +117,7 @@ class RatingField extends AbstractField implements SingleValueInterface
 
         $maxValue = $this->getMaxValue();
         for ($i = $maxValue; $i >= 1; $i--) {
-            $starId = $this->getHandle() . '_star_' . $i;
+            $starId = $this->getIdAttribute() . '_star_' . $i;
 
             $output .= '<input';
             $output .= $this->getInputAttributesString();

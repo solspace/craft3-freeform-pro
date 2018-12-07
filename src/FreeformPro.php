@@ -36,6 +36,7 @@ use Solspace\FreeformPro\Controllers\QuickExportController;
 use Solspace\FreeformPro\Controllers\SettingsController;
 use Solspace\FreeformPro\Models\Settings;
 use Solspace\FreeformPro\Services\ExportProfilesService;
+use Solspace\FreeformPro\Services\ProFormsService;
 use Solspace\FreeformPro\Services\RecaptchaService;
 use Solspace\FreeformPro\Services\RulesService;
 use Solspace\FreeformPro\Services\WidgetsService;
@@ -50,6 +51,7 @@ use yii\base\Event;
  * @property ExportProfilesService $exportProfiles
  * @property RecaptchaService      $recaptcha
  * @property RulesService          $rules
+ * @property ProFormsService       $proForms
  */
 class FreeformPro extends Plugin
 {
@@ -181,6 +183,7 @@ class FreeformPro extends Plugin
                 'exportProfiles' => ExportProfilesService::class,
                 'recaptcha'      => RecaptchaService::class,
                 'rules'          => RulesService::class,
+                'proForms'       => ProFormsService::class,
             ]
         );
     }
@@ -352,6 +355,18 @@ class FreeformPro extends Plugin
 
     private function initEventListeners()
     {
+        Event::on(
+            FormsService::class,
+            FormsService::EVENT_RENDER_CLOSING_TAG,
+            [$this->proForms, 'addDateTimeJavascript']
+        );
+
+        Event::on(
+            FormsService::class,
+            FormsService::EVENT_RENDER_CLOSING_TAG,
+            [$this->proForms, 'addPhonePatternJavascript']
+        );
+
         Event::on(
             FieldsService::class,
             FieldsService::EVENT_AFTER_VALIDATE,

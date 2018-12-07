@@ -14,6 +14,7 @@ namespace Solspace\FreeformPro\Integrations\CRM;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Solspace\Freeform\Library\Composer\Components\AbstractField;
 use Solspace\Freeform\Library\Exceptions\Integrations\CRMIntegrationNotFoundException;
 use Solspace\Freeform\Library\Exceptions\Integrations\IntegrationException;
 use Solspace\Freeform\Library\Integrations\CRM\AbstractCRMIntegration;
@@ -416,10 +417,23 @@ class SalesforceOpportunity extends AbstractCRMIntegration
                         $type = FieldObject::TYPE_ARRAY;
                         break;
 
+                    case 'int':
                     case 'number':
                     case 'phone':
                     case 'currency':
                         $type = FieldObject::TYPE_NUMERIC;
+                        break;
+
+                    case 'double':
+                        $type = FieldObject::TYPE_FLOAT;
+                        break;
+
+                    case 'date':
+                        $type = FieldObject::TYPE_DATE;
+                        break;
+
+                    case 'datetime':
+                        $type = FieldObject::TYPE_DATETIME;
                         break;
                 }
 
@@ -455,18 +469,20 @@ class SalesforceOpportunity extends AbstractCRMIntegration
     }
 
     /**
-     * @param FieldObject $fieldObject
-     * @param mixed|null  $value
+     * @param FieldObject   $fieldObject
+     * @param AbstractField $field
      *
-     * @return bool|string
+     * @return array|bool|string
      */
-    public function convertCustomFieldValue(FieldObject $fieldObject, $value = null)
+    public function convertCustomFieldValue(FieldObject $fieldObject, AbstractField $field)
     {
+        $value = parent::convertCustomFieldValue($fieldObject, $field);
+
         if ($fieldObject->getType() === FieldObject::TYPE_ARRAY) {
-            return \is_array($value) ? implode(';', $value) : $value;
+            $value = \is_array($value) ? implode(';', $value) : $value;
         }
 
-        return parent::convertCustomFieldValue($fieldObject, $value);
+        return $value;
     }
 
     /**

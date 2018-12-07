@@ -3,7 +3,6 @@
 namespace Solspace\FreeformPro\Services;
 
 use craft\base\Component;
-use craft\web\View;
 use GuzzleHttp\Client;
 use Solspace\Freeform\Events\Fields\ValidateEvent;
 use Solspace\Freeform\Events\Forms\FormRenderEvent;
@@ -58,13 +57,8 @@ class RecaptchaService extends Component
             $scriptJs = file_get_contents(\Yii::getAlias('@freeform-pro') . '/Resources/js/src/form/recaptcha.js');
 
             $recaptchaUrl = self::RECAPTCHA_SCRIPT_URL . '?render=explicit';
-            if (Freeform::getInstance()->settings->isFooterScripts()) {
-                \Craft::$app->view->registerJsFile($recaptchaUrl);
-                \Craft::$app->view->registerJs($scriptJs, View::POS_END);
-            } else {
-                $event->appendExternalJsToOutput($recaptchaUrl);
-                $event->appendJsToOutput($scriptJs);
-            }
+            $event->appendExternalJsToOutput($recaptchaUrl);
+            $event->appendJsToOutput($scriptJs);
         }
     }
 }

@@ -6,10 +6,11 @@ use Solspace\Freeform\Freeform;
 use Solspace\Freeform\Library\Composer\Components\AbstractField;
 use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\InputOnlyInterface;
 use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\NoStorageInterface;
+use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\RecaptchaInterface;
 use Solspace\Freeform\Library\Composer\Components\Fields\Interfaces\SingleValueInterface;
 use Solspace\Freeform\Library\Composer\Components\Fields\Traits\SingleValueTrait;
 
-class RecaptchaField extends AbstractField implements NoStorageInterface, SingleValueInterface, InputOnlyInterface
+class RecaptchaField extends AbstractField implements NoStorageInterface, SingleValueInterface, InputOnlyInterface, RecaptchaInterface
 {
     use SingleValueTrait;
 
