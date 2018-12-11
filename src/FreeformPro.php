@@ -9,7 +9,6 @@
 namespace Solspace\FreeformPro;
 
 use craft\base\Plugin;
-use craft\db\Query;
 use craft\events\PluginEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -147,12 +146,7 @@ class FreeformPro extends Plugin
      */
     protected function beforeInstall(): bool
     {
-        $isLiteInstalled = (bool) (new Query())
-            ->select('id')
-            ->from('{{%plugins}}')
-            ->where(['handle' => 'freeform'])
-            ->one();
-
+        $isLiteInstalled = \Craft::$app->getPlugins()->isPluginInstalled('freeform');
         if (!$isLiteInstalled) {
             \Craft::$app->session->setNotice(
                 \Craft::t('app', 'You must install Freeform Lite before you can install Freeform Pro')
