@@ -89,6 +89,8 @@ class SharpSpring extends AbstractCRMIntegration
 
                 $this->getLogger()->info((string) $response->getBody());
 
+                $this->getHandler()->onAfterResponse($this, $response);
+
                 return (isset($data['result']['error']) && (count($data['result']['error']) === 0));
             } catch (RequestException $e) {
                 if ($e->getResponse()) {

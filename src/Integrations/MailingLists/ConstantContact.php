@@ -125,6 +125,8 @@ class ConstantContact extends MailingListOAuthConnector
             );
         }
 
+        $this->getHandler()->onAfterResponse($this, $response);
+
         return $status === 200;
     }
 

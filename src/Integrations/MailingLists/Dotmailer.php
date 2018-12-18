@@ -129,13 +129,15 @@ class Dotmailer extends AbstractMailingListIntegration
                     }
                 }
 
-                $client->post(
+                $response = $client->post(
                     $endpoint,
                     [
                         'auth' => [$this->getUsername(), $this->getPassword()],
                         'json' => $data,
                     ]
                 );
+
+                $this->getHandler()->onAfterResponse($this, $response);
             }
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();

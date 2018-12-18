@@ -250,6 +250,8 @@ class SalesforceLead extends AbstractCRMIntegration
                 ]
             );
 
+            $this->getHandler()->onAfterResponse($this, $response);
+
             return $response->getStatusCode() === 201;
         } catch (RequestException $e) {
             $exceptionResponse = $e->getResponse();

@@ -291,21 +291,25 @@ class SalesforceOpportunity extends AbstractCRMIntegration
         try {
             if ($accountRecord) {
                 $accountEndpoint = $this->getEndpoint('/sobjects/Account/' . $accountRecord->Id);
-                $client->patch($accountEndpoint, ['json' => $accountMapping]);
+                $response = $client->patch($accountEndpoint, ['json' => $accountMapping]);
                 $accountId = $accountRecord->Id;
+                $this->getHandler()->onAfterResponse($this, $response);
             } else {
                 $accountEndpoint = $this->getEndpoint('/sobjects/Account');
                 $accountResponse = $client->post($accountEndpoint, ['json' => $accountMapping]);
                 $accountId       = json_decode($accountResponse->getBody())->id;
+                $this->getHandler()->onAfterResponse($this, $accountResponse);
             }
 
             $contactMapping['AccountId'] = $accountId;
             if ($contactRecord) {
                 $contactEndpoint = $this->getEndpoint('/sobjects/Contact/' . $contactRecord->Id);
-                $client->patch($contactEndpoint, ['json' => $contactMapping]);
+                $response = $client->patch($contactEndpoint, ['json' => $contactMapping]);
+                $this->getHandler()->onAfterResponse($this, $response);
             } else {
                 $contactEndpoint = $this->getEndpoint('/sobjects/Contact');
-                $client->post($contactEndpoint, ['json' => $contactMapping]);
+                $response = $client->post($contactEndpoint, ['json' => $contactMapping]);
+                $this->getHandler()->onAfterResponse($this, $response);
             }
 
             $opportunityMapping['CloseDate'] = $closeDate->toIso8601ZuluString();
@@ -313,6 +317,7 @@ class SalesforceOpportunity extends AbstractCRMIntegration
             $opportunityMapping['StageName'] = $this->getSetting(self::SETTING_STAGE);
 
             $response = $client->post($this->getEndpoint('/sobjects/Opportunity'), ['json' => $opportunityMapping]);
+            $this->getHandler()->onAfterResponse($this, $response);
 
             return $response->getStatusCode() === 201;
         } catch (RequestException $e) {

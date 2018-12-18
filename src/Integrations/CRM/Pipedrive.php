@@ -103,6 +103,9 @@ class Pipedrive extends AbstractCRMIntegration
                 if (isset($json->data->id)) {
                     $organizationId = $json->data->id;
                 }
+
+                $this->getHandler()->onAfterResponse($this, $response);
+
             } catch (RequestException $e) {
                 $responseBody = (string) $e->getResponse()->getBody();
 
@@ -131,6 +134,9 @@ class Pipedrive extends AbstractCRMIntegration
                 if (isset($json->data->id)) {
                     $personId = $json->data->id;
                 }
+
+                $this->getHandler()->onAfterResponse($this, $response);
+
             } catch (RequestException $e) {
                 $responseBody = (string) $e->getResponse()->getBody();
 
@@ -170,6 +176,9 @@ class Pipedrive extends AbstractCRMIntegration
 
             $json   = \GuzzleHttp\json_decode((string) $response->getBody(), false);
             $dealId = $json->data->id;
+
+            $this->getHandler()->onAfterResponse($this, $response);
+
         } catch (RequestException $e) {
             $responseBody = (string) $e->getResponse()->getBody();
 

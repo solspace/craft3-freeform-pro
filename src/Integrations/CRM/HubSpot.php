@@ -96,6 +96,9 @@ class HubSpot extends AbstractCRMIntegration
                 if (isset($json->vid)) {
                     $contactId = $json->vid;
                 }
+
+                $this->getHandler()->onAfterResponse($this, $response);
+
             } catch (RequestException $e) {
                 if ($e->getResponse()) {
                     $json = json_decode((string) $e->getResponse()->getBody());
@@ -127,6 +130,9 @@ class HubSpot extends AbstractCRMIntegration
                 if (isset($json->companyId)) {
                     $companyId = $json->companyId;
                 }
+
+                $this->getHandler()->onAfterResponse($this, $response);
+
             } catch (RequestException $e) {
                 $responseBody = (string) $e->getResponse()->getBody();
 
@@ -159,6 +165,8 @@ class HubSpot extends AbstractCRMIntegration
                 'query' => ['hapikey' => $this->getAccessToken()],
             ]
         );
+
+        $this->getHandler()->onAfterResponse($this, $response);
 
         return $response->getStatusCode() === 200;
     }

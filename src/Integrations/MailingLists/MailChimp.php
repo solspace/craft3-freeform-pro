@@ -162,6 +162,8 @@ class MailChimp extends AbstractMailingListIntegration
             );
         }
 
+        $this->getHandler()->onAfterResponse($this, $response);
+
         return $statusCode === 200;
     }
 
