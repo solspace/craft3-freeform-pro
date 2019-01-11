@@ -4,6 +4,7 @@ namespace Solspace\FreeformPro\Library\Rules;
 
 use Solspace\Commons\Helpers\ComparisonHelper;
 use Solspace\Freeform\Library\Composer\Components\AbstractField;
+use Solspace\Freeform\Library\Composer\Components\Fields\CheckboxField;
 use Solspace\Freeform\Library\Composer\Components\Form;
 use Solspace\Freeform\Library\Composer\Components\Properties;
 use Solspace\Freeform\Library\Composer\Components\Properties\AbstractProperties;
@@ -18,7 +19,7 @@ class RuleProperties extends AbstractProperties
     const DEFAULT_SHOW      = false;
     const DEFAULT_MATCH_ALL = false;
 
-        /** @var array */
+    /** @var array */
     protected $list;
 
     /** @var array */
@@ -109,7 +110,12 @@ class RuleProperties extends AbstractProperties
 
             $triggersRule = $this->triggersRule($rule, $form);
 
-            $cache[$form][$field] = ($rule->isHidden() && $triggersRule) || ($rule->isShown() && !$triggersRule);
+            $hiddenAndTriggers = $rule->isHidden() && $triggersRule;
+            $shownAndDoesntTrigger = $rule->isShown() && !$triggersRule;
+
+            $isHidden = $hiddenAndTriggers || $shownAndDoesntTrigger;
+
+            $cache[$form][$field] = $isHidden;
         }
 
         return $cache[$form][$field];
@@ -161,14 +167,18 @@ class RuleProperties extends AbstractProperties
             }
 
             $value       = strtolower($criteria->getValue());
-            $postedValue = $criteriaTarget->getValue();
+            if ($criteriaTarget instanceof CheckboxField) {
+                $postedValue = $criteriaTarget->getValue() ? $value : time();
+            } else {
+                $postedValue = $criteriaTarget->getValue();
+            }
 
             if (\is_array($postedValue)) {
                 $postedValue  = array_map('strtolower', $postedValue);
                 $valueMatches = false;
                 foreach ($postedValue as $val) {
                     if (ComparisonHelper::stringMatchesWildcard($value, $val)) {
-                        $valueMatches =  true;
+                        $valueMatches = true;
                     }
                 }
             } else {
