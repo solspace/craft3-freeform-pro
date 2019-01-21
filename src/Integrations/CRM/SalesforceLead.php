@@ -241,6 +241,8 @@ class SalesforceLead extends AbstractCRMIntegration
 
         $setOwner = $this->getSetting(self::SETTING_LEAD_OWNER);
 
+        $keyValueList = array_filter($keyValueList);
+
         try {
             $response = $client->post(
                 $endpoint,

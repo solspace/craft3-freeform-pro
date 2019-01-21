@@ -220,7 +220,7 @@ class SalesforceOpportunity extends AbstractCRMIntegration
     {
         $opportunityMapping = $accountMapping = $contactMapping = [];
         foreach ($keyValueList as $key => $value) {
-            if (!preg_match('/^(\w+)___(.*)$/', $key, $matches)) {
+            if (empty($value) || !preg_match('/^(\w+)___(.*)$/', $key, $matches)) {
                 continue;
             }
 
@@ -291,8 +291,8 @@ class SalesforceOpportunity extends AbstractCRMIntegration
         try {
             if ($accountRecord) {
                 $accountEndpoint = $this->getEndpoint('/sobjects/Account/' . $accountRecord->Id);
-                $response = $client->patch($accountEndpoint, ['json' => $accountMapping]);
-                $accountId = $accountRecord->Id;
+                $response        = $client->patch($accountEndpoint, ['json' => $accountMapping]);
+                $accountId       = $accountRecord->Id;
                 $this->getHandler()->onAfterResponse($this, $response);
             } else {
                 $accountEndpoint = $this->getEndpoint('/sobjects/Account');
@@ -304,11 +304,11 @@ class SalesforceOpportunity extends AbstractCRMIntegration
             $contactMapping['AccountId'] = $accountId;
             if ($contactRecord) {
                 $contactEndpoint = $this->getEndpoint('/sobjects/Contact/' . $contactRecord->Id);
-                $response = $client->patch($contactEndpoint, ['json' => $contactMapping]);
+                $response        = $client->patch($contactEndpoint, ['json' => $contactMapping]);
                 $this->getHandler()->onAfterResponse($this, $response);
             } else {
                 $contactEndpoint = $this->getEndpoint('/sobjects/Contact');
-                $response = $client->post($contactEndpoint, ['json' => $contactMapping]);
+                $response        = $client->post($contactEndpoint, ['json' => $contactMapping]);
                 $this->getHandler()->onAfterResponse($this, $response);
             }
 

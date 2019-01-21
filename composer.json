@@ -1,7 +1,7 @@
 {
   "name": "solspace/craft3-freeform-pro",
   "description": "Adds API integrations, premium field types, advanced exporting and widgets to Freeform.",
-  "version": "2.5.8",
+  "version": "2.5.9",
   "type": "craft-plugin",
   "authors": [
     {
