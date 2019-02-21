@@ -12,6 +12,7 @@
 namespace Solspace\FreeformPro\Widgets;
 
 use craft\db\Query;
+use craft\db\Table;
 use Solspace\Commons\Helpers\ColorHelper;
 use Solspace\Freeform\Elements\Submission;
 use Solspace\Freeform\Freeform;
@@ -19,7 +20,6 @@ use Solspace\Freeform\Library\Composer\Components\AbstractField;
 use Solspace\Freeform\Resources\Bundles\ChartJsBundle;
 use Solspace\FreeformPro\FreeformPro;
 use Solspace\FreeformPro\Services\WidgetsService;
-use yii\db\Exception;
 
 class FieldValuesWidget extends AbstractWidget
 {
@@ -162,7 +162,13 @@ class FieldValuesWidget extends AbstractWidget
      */
     private function getChartData(): array
     {
-        $widgets = $this->getWidgetsService();
+        $submissions = Submission::TABLE;
+
+        if (version_compare(\Craft::$app->getVersion(), '3.1', '>=')) {
+            $elements    = Table::ELEMENTS;
+        }
+
+        $widgets     = $this->getWidgetsService();
 
         list($rangeStart, $rangeEnd) = $widgets->getRange($this->dateRange);
 
@@ -174,18 +180,26 @@ class FieldValuesWidget extends AbstractWidget
         $showEmpty = $this->showEmpty;
 
         try {
-            $result = (new Query())
+            $query = (new Query())
                 ->select(
                     [
-                        "[[submission.$columnName]] as val",
-                        'COUNT([[submission.id]]) as count',
+                        "$submissions.[[$columnName]] as val",
+                        "COUNT($submissions.[[id]]) as count",
                     ]
                 )
-                ->from(Submission::TABLE . ' submission')
-                ->where(['between', '[[submission.dateCreated]]', $rangeStart, $rangeEnd])
-                ->andWhere(['[[submission.formId]]' => $formId])
-                ->groupBy([$columnName])
-                ->all();
+                ->from(Submission::TABLE)
+                ->where(['between', "$submissions.[[dateCreated]]", $rangeStart, $rangeEnd])
+                ->andWhere(["$submissions.[[formId]]" => $formId])
+                ->groupBy([$columnName]);
+
+            if (version_compare(\Craft::$app->getVersion(), '3.1', '>=')) {
+                $query->innerJoin(
+                    $elements,
+                    "$elements.[[id]] = $submissions.[[id]] AND $elements.[[dateDeleted]] IS NULL"
+                );
+            }
+
+            $result = $query->all();
         } catch (\Exception $e) {
             $result = [];
         }

@@ -15,6 +15,10 @@ class m180829_100554_TransferRecaptchaSettings extends Migration
      */
     public function safeUp()
     {
+        if (version_compare(\Craft::$app->getVersion(), '3.1', '>=')) {
+            return true;
+        }
+
         $proSettings = (new Query())
             ->select('settings')
             ->from('{{%plugins}}')
@@ -63,6 +67,7 @@ class m180829_100554_TransferRecaptchaSettings extends Migration
     public function safeDown()
     {
         echo "m180829_100554_TransferRecaptchaSettings cannot be reverted.\n";
+
         return false;
     }
 }
