@@ -411,6 +411,7 @@ class SalesforceOpportunity extends AbstractCRMIntegration
                     case 'url':
                     case 'address':
                     case 'picklist':
+                    case 'phone':
                         $type = FieldObject::TYPE_STRING;
                         break;
 
@@ -424,7 +425,6 @@ class SalesforceOpportunity extends AbstractCRMIntegration
 
                     case 'int':
                     case 'number':
-                    case 'phone':
                     case 'currency':
                         $type = FieldObject::TYPE_NUMERIC;
                         break;
