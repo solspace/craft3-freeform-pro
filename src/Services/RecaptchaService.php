@@ -59,6 +59,8 @@ class RecaptchaService extends Component
             $recaptchaUrl = self::RECAPTCHA_SCRIPT_URL . '?render=explicit';
             $event->appendExternalJsToOutput($recaptchaUrl);
             $event->appendJsToOutput($scriptJs);
+
+            $scriptLoaded = true;
         }
     }
 }
