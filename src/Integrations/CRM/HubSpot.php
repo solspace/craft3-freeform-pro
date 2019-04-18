@@ -18,13 +18,14 @@ use Solspace\Freeform\Library\Integrations\CRM\AbstractCRMIntegration;
 use Solspace\Freeform\Library\Integrations\DataObjects\FieldObject;
 use Solspace\Freeform\Library\Integrations\IntegrationStorageInterface;
 use Solspace\Freeform\Library\Integrations\SettingBlueprint;
-use Solspace\Freeform\Library\Logging\LoggerInterface;
 
 class HubSpot extends AbstractCRMIntegration
 {
-    const SETTING_API_KEY = 'api_key';
-    const TITLE           = 'HubSpot';
-    const LOG_CATEGORY    = 'HubSpot';
+    const SETTING_API_KEY  = 'api_key';
+    const SETTING_IP_FIELD = 'ip_field';
+
+    const TITLE        = 'HubSpot';
+    const LOG_CATEGORY = 'HubSpot';
 
     /**
      * Returns a list of additional settings for this integration
@@ -41,6 +42,12 @@ class HubSpot extends AbstractCRMIntegration
                 'API Key',
                 'Enter your HubSpot API key here.',
                 true
+            ),
+            new SettingBlueprint(
+                SettingBlueprint::TYPE_TEXT,
+                self::SETTING_IP_FIELD,
+                'IP Address Field',
+                'Enter a custom HubSpot Contact field handle where you wish to store the client\'s IP address from the submission (optional).'
             ),
         ];
     }
@@ -83,6 +90,13 @@ class HubSpot extends AbstractCRMIntegration
 
         $contactId = null;
         if ($contactProps) {
+            if ($this->getSetting(self::SETTING_IP_FIELD) && isset($_SERVER['REMOTE_ADDR'])) {
+                $contactProps[] = [
+                    'value'    => $_SERVER['REMOTE_ADDR'],
+                    'property' => $this->getSetting(self::SETTING_IP_FIELD),
+                ];
+            }
+
             try {
                 $response = $client->post(
                     $this->getEndpoint('/contacts/v1/contact'),
@@ -142,33 +156,37 @@ class HubSpot extends AbstractCRMIntegration
             }
         }
 
-        $deal = [
-            'properties' => $dealProps,
-        ];
+        if (!empty($dealProps)) {
+            $deal = [
+                'properties' => $dealProps,
+            ];
 
-        if ($companyId || $contactId) {
-            $deal['associations'] = [];
+            if ($companyId || $contactId) {
+                $deal['associations'] = [];
 
-            if ($companyId) {
-                $deal['associations']['associatedCompanyIds'] = [$companyId];
+                if ($companyId) {
+                    $deal['associations']['associatedCompanyIds'] = [$companyId];
+                }
+
+                if ($contactId) {
+                    $deal['associations']['associatedVids'] = [$contactId];
+                }
             }
 
-            if ($contactId) {
-                $deal['associations']['associatedVids'] = [$contactId];
-            }
+            $response = $client->post(
+                $endpoint,
+                [
+                    'json'  => $deal,
+                    'query' => ['hapikey' => $this->getAccessToken()],
+                ]
+            );
+
+            $this->getHandler()->onAfterResponse($this, $response);
+
+            return $response->getStatusCode() === 200;
         }
 
-        $response = $client->post(
-            $endpoint,
-            [
-                'json'  => $deal,
-                'query' => ['hapikey' => $this->getAccessToken()],
-            ]
-        );
-
-        $this->getHandler()->onAfterResponse($this, $response);
-
-        return $response->getStatusCode() === 200;
+        return true;
     }
 
     /**
