@@ -283,6 +283,7 @@ class DatetimeField extends TextField implements InitialValueInterface, Datetime
                     'minDate' => $this->getGeneratedMinDate($this->getDateFormat()),
                 ]
             ),
+            $this->getFormat(),
             $this->getGeneratedMinDate()
         );
         $constraints[] = new MaxDateConstraint(
@@ -293,10 +294,129 @@ class DatetimeField extends TextField implements InitialValueInterface, Datetime
                     'maxDate' => $this->getGeneratedMaxDate($this->getDateFormat()),
                 ]
             ),
+            $this->getFormat(),
             $this->getGeneratedMaxDate()
         );
 
         return $constraints;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDatepickerFormat(): string
+    {
+        $format = $this->getFormat();
+
+        $datepickerFormat = str_replace(
+            ['G', 'g', 'a', 'A'],
+            ['H', 'h', 'K', 'K'],
+            $format
+        );
+
+        return $datepickerFormat;
+    }
+
+    /**
+     * Converts Y/m/d to YYYY/MM/DD, etc
+     *
+     * @return string
+     */
+    public function getHumanReadableFormat(): string
+    {
+        $format = $this->getFormat();
+
+        $humanReadable = str_replace(
+            ['Y', 'y', 'n', 'm', 'j', 'd', 'H', 'h', 'G', 'g', 'i', 'A', 'a'],
+            ['YYYY', 'YY', 'M', 'MM', 'D', 'DD', 'HH', 'H', 'HH', 'H', 'MM', 'TT', 'TT'],
+            $format
+        );
+
+        return $humanReadable;
+    }
+
+    /**
+     * Gets the datetime format based on selected field settings
+     *
+     * @return string
+     */
+    public function getFormat(): string
+    {
+        $showDate = \in_array($this->getDateTimeType(), [self::DATETIME_TYPE_BOTH, self::DATETIME_TYPE_DATE], true);
+        $showTime = \in_array($this->getDateTimeType(), [self::DATETIME_TYPE_BOTH, self::DATETIME_TYPE_TIME], true);
+
+        $formatParts = [];
+        if ($showDate) {
+            $formatParts[] = $this->getDateFormat();
+        }
+
+        if ($showTime) {
+            $formatParts[] = $this->getTimeFormat();
+        }
+
+        return implode(' ', $formatParts);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDateFormat(): string
+    {
+        $month = $this->isDateLeadingZero() ? 'm' : 'n';
+        $day   = $this->isDateLeadingZero() ? 'd' : 'j';
+        $year  = $this->isDate4DigitYear() ? 'Y' : 'y';
+
+        $first = $second = $third = null;
+
+        switch ($this->getDateOrder()) {
+            case 'mdy':
+                $first  = $month;
+                $second = $day;
+                $third  = $year;
+
+                break;
+
+            case 'dmy':
+                $first  = $day;
+                $second = $month;
+                $third  = $year;
+
+                break;
+
+            case 'ymd':
+                $first  = $year;
+                $second = $month;
+                $third  = $day;
+
+                break;
+        }
+
+        return sprintf(
+            '%s%s%s%s%s',
+            $first,
+            $this->getDateSeparator(),
+            $second,
+            $this->getDateSeparator(),
+            $third
+        );
+    }
+
+    /**
+     * @return string
+     */
+    public function getTimeFormat(): string
+    {
+        $minutes = 'i';
+
+        if ($this->isClock24h()) {
+            $hours = 'H';
+            $ampm  = '';
+        } else {
+            $hours = 'g';
+            $ampm  = ($this->isClockAMPMSeparate() ? ' ' : '') . ($this->isLowercaseAMPM() ? 'a' : 'A');
+        }
+
+        return $hours . $this->getClockSeparator() . $minutes . $ampm;
     }
 
     /**
@@ -343,123 +463,5 @@ class DatetimeField extends TextField implements InitialValueInterface, Datetime
             . $this->getRequiredAttribute()
             . $attributes->getInputAttributesAsString()
             . '/>';
-    }
-
-    /**
-     * @return string
-     */
-    private function getDatepickerFormat(): string
-    {
-        $format = $this->getFormat();
-
-        $datepickerFormat = str_replace(
-            ['G', 'g', 'a', 'A'],
-            ['H', 'h', 'K', 'K'],
-            $format
-        );
-
-        return $datepickerFormat;
-    }
-
-    /**
-     * Converts Y/m/d to YYYY/MM/DD, etc
-     *
-     * @return string
-     */
-    private function getHumanReadableFormat(): string
-    {
-        $format = $this->getFormat();
-
-        $humanReadable = str_replace(
-            ['Y', 'y', 'n', 'm', 'j', 'd', 'H', 'h', 'G', 'g', 'i', 'A', 'a'],
-            ['YYYY', 'YY', 'M', 'MM', 'D', 'DD', 'HH', 'H', 'HH', 'H', 'MM', 'TT', 'TT'],
-            $format
-        );
-
-        return $humanReadable;
-    }
-
-    /**
-     * Gets the datetime format based on selected field settings
-     *
-     * @return string
-     */
-    private function getFormat(): string
-    {
-        $showDate = \in_array($this->getDateTimeType(), [self::DATETIME_TYPE_BOTH, self::DATETIME_TYPE_DATE], true);
-        $showTime = \in_array($this->getDateTimeType(), [self::DATETIME_TYPE_BOTH, self::DATETIME_TYPE_TIME], true);
-
-        $formatParts = [];
-        if ($showDate) {
-            $formatParts[] = $this->getDateFormat();
-        }
-
-        if ($showTime) {
-            $formatParts[] = $this->getTimeFormat();
-        }
-
-        return implode(' ', $formatParts);
-    }
-
-    /**
-     * @return string
-     */
-    private function getDateFormat(): string
-    {
-        $month = $this->isDateLeadingZero() ? 'm' : 'n';
-        $day   = $this->isDateLeadingZero() ? 'd' : 'j';
-        $year  = $this->isDate4DigitYear() ? 'Y' : 'y';
-
-        $first = $second = $third = null;
-
-        switch ($this->getDateOrder()) {
-            case 'mdy':
-                $first  = $month;
-                $second = $day;
-                $third  = $year;
-
-                break;
-
-            case 'dmy':
-                $first  = $day;
-                $second = $month;
-                $third  = $year;
-
-                break;
-
-            case 'ymd':
-                $first  = $year;
-                $second = $month;
-                $third  = $day;
-
-                break;
-        }
-
-        return sprintf(
-            '%s%s%s%s%s',
-            $first,
-            $this->getDateSeparator(),
-            $second,
-            $this->getDateSeparator(),
-            $third
-        );
-    }
-
-    /**
-     * @return string
-     */
-    private function getTimeFormat(): string
-    {
-        $minutes = 'i';
-
-        if ($this->isClock24h()) {
-            $hours = 'H';
-            $ampm  = '';
-        } else {
-            $hours = 'g';
-            $ampm  = ($this->isClockAMPMSeparate() ? ' ' : '') . ($this->isLowercaseAMPM() ? 'a' : 'A');
-        }
-
-        return $hours . $this->getClockSeparator() . $minutes . $ampm;
     }
 }
