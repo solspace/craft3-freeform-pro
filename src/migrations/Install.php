@@ -4,13 +4,14 @@ namespace Solspace\FreeformPro\migrations;
 
 use craft\db\Query;
 use Solspace\Commons\Migrations\ForeignKey;
+use Solspace\Commons\Migrations\KeepTablesAfterUninstallInterface;
 use Solspace\Commons\Migrations\StreamlinedInstallMigration;
 use Solspace\Commons\Migrations\Table;
 
 /**
  * Install migration.
  */
-class Install extends StreamlinedInstallMigration
+class Install extends StreamlinedInstallMigration implements KeepTablesAfterUninstallInterface
 {
     /**
      * @return Table[]

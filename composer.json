@@ -1,7 +1,7 @@
 {
   "name": "solspace/craft3-freeform-pro",
   "description": "Adds API integrations, reCAPTCHA, conditional rules logic, premium field types, advanced exporting and widgets to Freeform.",
-  "version": "2.5.22",
+  "version": "2.5.23",
   "type": "craft-plugin",
   "authors": [
     {
@@ -12,7 +12,7 @@
   "require": {
     "craftcms/cms": "^3.0.0",
     "solspace/craft3-freeform": "^2.5.0",
-    "solspace/craft3-commons": "^1.0.17"
+    "solspace/craft3-commons": "^1.0.20"
   },
   "autoload": {
     "psr-4": {
